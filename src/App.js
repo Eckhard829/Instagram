@@ -22,7 +22,6 @@ function App() {
       }
     });
 
-    // Listen for real-time updates from Firestore
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribePosts = onSnapshot(q, (snapshot) => {
       const postsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -38,7 +37,7 @@ function App() {
   }, []);
 
   const addPost = (newPost) => {
-    setPosts([newPost, ...posts]); // Optimistic update
+    setPosts([newPost, ...posts]);
   };
 
   const accountImages = [

@@ -26,27 +26,26 @@ const CreatePost = ({ user, onAddPost }) => {
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
-        // Store post in Firestore
         const postData = {
           avatar: user.photoURL || 'https://via.placeholder.com/150',
           username: user.displayName || user.email.split('@')[0],
           time: new Date().toISOString(),
-          image: reader.result, // Base64 string of the uploaded image
+          image: reader.result,
           likes: 0,
           caption: caption,
-          userId: user.uid, // Associate with the logged-in user
+          userId: user.uid,
           createdAt: new Date(),
         };
 
         await addDoc(collection(db, 'posts'), postData);
-        onAddPost(postData); // Update local state
-        navigate('/'); // Redirect to home page
+        onAddPost(postData);
+        navigate('/');
       } catch (error) {
         console.error('Error adding post:', error);
         alert('Failed to create post. Please try again.');
       }
     };
-    reader.readAsDataURL(photoFile); // Convert file to Base64
+    reader.readAsDataURL(photoFile);
   };
 
   return (
