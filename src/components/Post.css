@@ -1,0 +1,176 @@
+.post-section {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 630px;
+  overflow-y: hidden;
+}
+
+.post {
+  width: 470px;
+  height: 751px;
+  background-color: transparent;
+  border-radius: 0;
+  padding: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #333;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.post:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  width: 450px;
+  height: 1px;
+  background-color: #333;
+}
+
+.post:first-child {
+  margin-top: 0;
+}
+
+.post-header {
+  width: 466px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+  padding-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.post-avatar {
+  width: 34px;
+  height: 34px;
+  background-color: #444;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.post-username {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.post-time {
+  font-size: 12px;
+  color: #999;
+  margin-left: 10px;
+}
+
+.post-image {
+  width: 468px;
+  height: 585px;
+  background-color: #222;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.post-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.post-footer {
+  width: 470px;
+  height: 118px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.post-actions {
+  display: flex;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.post-actions span {
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+.post-actions span:hover {
+  color: #fff;
+}
+
+.post-likes {
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 8px;
+}
+
+.post-caption {
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 8px;
+}
+
+.post-comment-input {
+  width: 100%;
+  padding: 8px;
+  background-color: #222;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .post-section {
+    align-items: center;
+    width: 100%;
+    overflow-y: hidden;
+  }
+  .post {
+    width: 100%;
+    max-width: 470px;
+    height: auto;
+    padding: 10px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 20px;
+  }
+  .post:after {
+    width: calc(100% - 20px);
+    left: 10px;
+  }
+  .post-header {
+    width: 100%;
+    max-width: 466px;
+    height: auto;
+    padding-left: 4px;
+    padding-bottom: 12px;
+  }
+  .post-avatar {
+    width: 30px;
+    height: 30px;
+  }
+  .post-image {
+    width: 100%;
+    max-width: 468px;
+    height: 300px;
+  }
+  .post-image img {
+    width: 100%;
+    height: 100%;
+  }
+  .post-footer {
+    width: 100%;
+    max-width: 470px;
+    height: auto;
+  }
+  .post-comment-input {
+    padding: 6px;
+  }
+}

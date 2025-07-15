@@ -1,0 +1,160 @@
+@import url('https://fonts.cdnfonts.com/css/billabong');
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #000;
+  margin: 0;
+  padding: 0;
+  color: #ffffff;
+}
+
+.auth-form {
+  width: 350px;
+  padding: 30px;
+  background-color: #000;
+  text-align: center;
+}
+
+.auth-logo {
+  font-family: 'Billabong', cursive;
+  font-size: 45px;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px #ffffff;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 6px;
+  border: 1px solid #262626;
+  background-color: #262626;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #444444;
+  color: #ffffff;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 7px;
+  background-color: #0095f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.auth-button:hover {
+  background-color: #007bb5;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  color: #8e8e8e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex-grow: 1;
+  height: 1px;
+  background-color: #333333;
+  margin: 0 10px;
+}
+
+.facebook-login {
+  width: 100%;
+  padding: 7px;
+  background-color: #1877f2;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.facebook-login:hover {
+  background-color: #166fe5;
+}
+
+.forgot-password {
+  display: block;
+  margin-bottom: 10px;
+  color: #0095f6;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #ff0000;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.toggle-link {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #0095f6;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.toggle-link:hover {
+  text-decoration: underline;
+}
+
+.footer-links {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #8e8e8e;
+}
+
+.footer-links a {
+  color: #8e8e8e;
+  text-decoration: none;
+  margin: 0 5px;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+.footer-copyright {
+  font-size: 12px;
+  color: #8e8e8e;
+  margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+  .auth-form {
+    width: 100%;
+    max-width: 350px;
+  }
+}

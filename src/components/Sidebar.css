@@ -1,0 +1,151 @@
+@import url('https://fonts.cdnfonts.com/css/billabong');
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 311px;
+  height: auto;
+  background-color: #000000;
+  color: #ffffff;
+  padding: 20px 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border: 0px solid transparent;
+  margin: 0;
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 311px;
+  width: 1px;
+  height: 100vh;
+  background-color: #333; /* Matches the post border color for consistency */
+  z-index: 1;
+}
+
+.sidebar-logo {
+  padding: 0 0 0 12px;
+  border: 0px solid transparent;
+  margin: 0 0 20px 0;
+}
+
+.sidebar-logo h1 {
+  font-family: 'Billabong', cursive;
+  font-size: 36px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.sidebar-main-nav {
+  width: 220px;
+  height: 657px;
+  padding-left: 12px;
+  box-sizing: border-box;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  border-radius: 8px;
+  text-decoration: none; /* Remove underline from links */
+  color: #ffffff; /* Ensure base text color is white */
+}
+
+.sidebar-item:hover {
+  background-color: #262626;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.sidebar-icon {
+  font-size: 24px;
+  width: 24px;
+  text-align: center;
+}
+
+.sidebar-label {
+  font-size: 16px;
+  font-weight: 500;
+  padding-left: 16px;
+}
+
+.notification-badge {
+  background-color: #ed4956;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+.sidebar-more {
+  padding-left: 12px;
+  margin-top: auto;
+}
+
+/* Override link styles to keep "Home" and "Create" white */
+a.sidebar-item,
+a.sidebar-item:hover,
+a.sidebar-item:active,
+a.sidebar-item:visited {
+  color: #ffffff; /* Ensure links stay white */
+  text-decoration: none; /* Remove underline */
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 72px;
+    height: auto;
+    padding: 16px 0;
+  }
+  .sidebar::after {
+    left: 72px;
+  }
+  .sidebar-logo {
+    padding: 0 0 0 8px;
+    border: 0px solid transparent;
+  }
+  .sidebar-logo h1 {
+    font-size: 28px;
+  }
+  .sidebar-main-nav {
+    width: 72px;
+    height: auto;
+    padding-left: 8px;
+  }
+  .sidebar-item {
+    justify-content: center;
+  }
+  .sidebar-label {
+    display: none;
+  }
+  .sidebar-icon {
+    margin-right: 0;
+  }
+  .notification-badge {
+    margin-left: 0;
+    position: absolute;
+    right: 8px;
+  }
+}

@@ -1,0 +1,161 @@
+.right-menu {
+  position: absolute;
+  margin-top: 36px;
+  left: calc(311px + 611px + 630px + (100vw - (311px + 611px + 630px)) / 2 - 50px); /* MOVED LEFT 50PX */
+  transform: translateX(-50%);
+  width: 316px;
+  height: 606px;
+  background-color: #000;
+  color: #fff;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.right-menu .profile-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.right-menu .profile-avatar {
+  width: 56px;
+  height: 56px;
+  margin-right: 10px;
+}
+
+.right-menu .profile-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.right-menu .profile-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.right-menu .profile-username {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.right-menu .profile-name {
+  font-size: 14px;
+  color: #999;
+}
+
+.right-menu .switch-button {
+  background-color: transparent;
+  border: none;
+  color: #0095f6;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.right-menu .switch-button:hover {
+  color: #fff;
+}
+
+.right-menu .suggested-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.right-menu .suggested-header h3 {
+  margin: 0;
+}
+
+.right-menu .see-all {
+  font-size: 12px;
+  color: #0095f6;
+  text-decoration: none;
+}
+
+.right-menu .see-all:hover {
+  text-decoration: underline;
+}
+
+.right-menu .suggested-accounts {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  flex-grow: 1;
+}
+
+.right-menu .suggested-accounts li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.right-menu .account-avatar {
+  width: 44px;
+  height: 44px;
+  margin-right: 10px;
+}
+
+.right-menu .account-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.right-menu .account-username {
+  font-size: 14px;
+  color: #fff;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.right-menu .follow-button {
+  background-color: transparent;
+  border: 1px solid #dbdbdb;
+  color: #0095f6;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.right-menu .follow-button:hover {
+  background-color: #0095f6;
+  color: #fff;
+  border-color: #0095f6;
+}
+
+.right-menu .footer-links {
+  font-size: 12px;
+  color: #999;
+  margin-top: 12px;
+}
+
+.right-menu .footer-links p {
+  margin: 5px 0;
+}
+
+.right-menu .footer-links a {
+  color: #999;
+  text-decoration: none;
+}
+
+.right-menu .footer-links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .right-menu {
+    display: none;
+  }
+}
