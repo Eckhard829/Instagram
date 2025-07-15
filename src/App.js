@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { auth } from './firebase';
 import { db } from './firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import Auth from './components/Auth';
+import CreatePost from './components/CreatePost';
 import Sidebar from './components/Sidebar';
 import RightMenu from './components/RightMenu';
-import CreatePost from './components/CreatePost';
 import './App.css';
 
 function App() {
@@ -51,7 +51,74 @@ function App() {
     'https://scontent-jnb2-1.cdninstagram.com/v/t51.2885-19/255266024_896511540999918_2187093427607347334_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=107&ccb=1-7&_nc_sid=f7ccc5&_nc_ohc=SR-VLHTQudIQ7kNvwGFmgam&_nc_oc=AdkdPS7uHQ9NGY662xax9XA6UdsquNwboZGLcEijeDXaMNFVV61Zhqir6Cl94GYUK4Y&_nc_ad=z-m&_nc_cid=0&_nc_zt=24&_nc_ht=scontent-jnb2-1.cdninstagram.com&oh=00_AfSekAa_bBCP3VAZS2MVbStOUHN5Hljb7RiEG4hkEnGYLQ&oe=687BFC83',
   ];
 
-  const HomePage = () => (
+  const MobileHomePage = () => (
+    <div className="mobile-container">
+      <div className="mobile-top-bar">
+        <div className="mobile-logo">
+          <h1>Instagram</h1>
+        </div>
+        <div className="mobile-top-icons">
+          <span className="material-symbols-outlined">favorite</span>
+          <span className="material-symbols-outlined">send</span>
+        </div>
+      </div>
+      <div className="account-circles">
+        {accountImages.map((image, index) => (
+          <div key={index} className="account-circle">
+            <img src={image} alt={`Account ${index + 1}`} />
+          </div>
+        ))}
+      </div>
+      <div className="post-section">
+        {posts.map((post) => (
+          <div key={post.id} className="post">
+            <div className="post-header">
+              <div className="post-avatar" style={{ backgroundImage: `url(${post.avatar})`, backgroundSize: 'cover' }}></div>
+              <span className="post-username">{post.username}</span>
+              <span className="post-time">{new Date(post.time).toLocaleString()}</span>
+            </div>
+            <div className="post-image" style={{ backgroundImage: `url(${post.image})`, backgroundSize: 'cover' }}></div>
+            <div className="post-footer">
+              <div className="post-actions-row">
+                <div className="post-actions">
+                  <span className="material-symbols-outlined">favorite</span>
+                  <span className="material-symbols-outlined">chat_bubble</span>
+                  <span className="material-symbols-outlined">send</span>
+                </div>
+                <div className="post-bookmark">
+                  <span className="material-symbols-outlined">bookmark</span>
+                </div>
+              </div>
+              <div className="post-likes">{post.likes} likes</div>
+              <div className="post-caption">
+                <span className="post-username">{post.username}</span> {post.caption}
+              </div>
+              <input type="text" className="post-comment-input" placeholder="Add a comment..." />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mobile-bottom-nav">
+        <Link to="/" className="nav-item">
+          <span className="material-symbols-outlined">home</span>
+        </Link>
+        <div className="nav-item">
+          <span className="material-symbols-outlined">search</span>
+        </div>
+        <Link to={user ? "/create" : "#"} onClick={() => !user && alert('Please log in to create a post.')} className="nav-item">
+          <span className="material-symbols-outlined">add_box</span>
+        </Link>
+        <div className="nav-item">
+          <span className="material-symbols-outlined">movie</span>
+        </div>
+        <div className="nav-item">
+          <span className="material-symbols-outlined">person</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const DesktopHomePage = () => (
     <div className="app-container">
       <Sidebar user={user} />
       <div className="main-content">
@@ -103,7 +170,16 @@ function App() {
       <div className="app">
         {user ? (
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={
+              <div className="responsive-container">
+                <div className="mobile-view">
+                  <MobileHomePage />
+                </div>
+                <div className="desktop-view">
+                  <DesktopHomePage />
+                </div>
+              </div>
+            } />
             <Route path="/create" element={<CreatePost user={user} onAddPost={addPost} />} />
           </Routes>
         ) : (
