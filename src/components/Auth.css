@@ -98,11 +98,14 @@
 }
 
 .forgot-password {
+  background: none;
+  border: none;
+  color: #0095f6;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 12px;
   display: block;
   margin-bottom: 10px;
-  color: #0095f6;
-  font-size: 12px;
-  text-decoration: none;
 }
 
 .forgot-password:hover {

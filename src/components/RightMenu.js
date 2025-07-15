@@ -55,7 +55,9 @@ const RightMenu = () => {
       </div>
       <div className="suggested-header">
         <h3>Suggested for you</h3>
-        <a href="#" className="see-all">See all</a>
+        <button className="see-all" onClick={() => {/* Add logic for seeing all suggestions */}}>
+          See all
+        </button>
       </div>
       <ul className="suggested-accounts">
         {suggestedAccounts.map((account, index) => (
@@ -70,7 +72,16 @@ const RightMenu = () => {
       </ul>
       <div className="footer-links">
         <p>
-          <a href="#">About</a> • <a href="#">Help</a> • <a href="#">Press</a> • <a href="#">API</a> • <a href="#">Jobs</a> • <a href="#">Privacy</a> • <a href="#">Terms</a> • <a href="#">Locations</a> • <a href="#">Language</a> • <a href="#">Meta Verified</a>
+          <a href="https://about.instagram.com">About</a> • 
+          <a href="https://help.instagram.com">Help</a> • 
+          <a href="https://instagram.com/about-us">Press</a> • 
+          <a href="https://developers.instagram.com">API</a> • 
+          <a href="https://instagram.com/about/jobs">Jobs</a> • 
+          <a href="https://instagram.com/legal/privacy">Privacy</a> • 
+          <a href="https://instagram.com/legal/terms">Terms</a> • 
+          <a href="https://instagram.com/explore/locations">Locations</a> • 
+          <a href="https://instagram.com/language">Language</a> • 
+          <a href="https://instagram.com/accounts/meta-verified">Meta Verified</a>
         </p>
         <p>© 2025 Instagram from Meta</p>
       </div>

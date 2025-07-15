@@ -55,7 +55,9 @@ const Auth = ({ setUser }) => {
         </form>
         <div className="divider">OR</div>
         <button className="facebook-login">Log in with Facebook</button>
-        <a href="#" className="forgot-password">Forgot password?</a>
+        <button className="forgot-password" onClick={() => {/* Add password reset logic here */}}>
+          Forgot password?
+        </button>
         {error && <p className="error-message">{error}</p>}
         <button
           onClick={() => setIsLogin(!isLogin)}
@@ -64,7 +66,19 @@ const Auth = ({ setUser }) => {
           Don't have an account? Sign up
         </button>
         <div className="footer-links">
-          <a href="#">Meta</a> <a href="#">About</a> <a href="#">Blog</a> <a href="#">Jobs</a> <a href="#">Help</a> <a href="#">API</a> <a href="#">Privacy</a> <a href="#">Terms</a> <a href="#">Locations</a> <a href="#">Instagram Lite</a> <a href="#">Threads</a> <a href="#">Contact Uploading & Non-Users</a> <a href="#">Meta Verified</a>
+          <a href="https://meta.com">Meta</a>
+          <a href="https://about.instagram.com">About</a>
+          <a href="https://instagram.com/about-us">Blog</a>
+          <a href="https://instagram.com/about/jobs">Jobs</a>
+          <a href="https://help.instagram.com">Help</a>
+          <a href="https://developers.instagram.com">API</a>
+          <a href="https://instagram.com/legal/privacy">Privacy</a>
+          <a href="https://instagram.com/legal/terms">Terms</a>
+          <a href="https://instagram.com/explore/locations">Locations</a>
+          <a href="https://instagram.com/lite">Instagram Lite</a>
+          <a href="https://threads.net">Threads</a>
+          <a href="https://help.instagram.com/contact">Contact Uploading & Non-Users</a>
+          <a href="https://instagram.com/accounts/meta-verified">Meta Verified</a>
         </div>
         <p className="footer-copyright">© 2025 Instagram from Meta</p>
       </div>

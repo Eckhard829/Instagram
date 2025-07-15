@@ -75,9 +75,12 @@
 }
 
 .right-menu .see-all {
-  font-size: 12px;
+  background: none;
+  border: none;
   color: #0095f6;
+  cursor: pointer;
   text-decoration: none;
+  font-size: 12px;
 }
 
 .right-menu .see-all:hover {
