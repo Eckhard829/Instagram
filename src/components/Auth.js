@@ -27,6 +27,9 @@ const Auth = ({ setUser }) => {
 
   return (
     <div className="auth-container">
+      <div className="auth-left">
+        <div className="auth-phone"></div>
+      </div>
       <div className="auth-form">
         <h1 className="auth-logo">Instagram</h1>
         <form onSubmit={handleAuth}>
