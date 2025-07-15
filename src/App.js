@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { auth } from './firebase';
+import { db } from './firebase';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import Auth from './components/Auth';
 import Sidebar from './components/Sidebar';
 import RightMenu from './components/RightMenu';
@@ -9,22 +11,34 @@ import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [posts, setPosts] = useState([
-  ]);
+  const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       if (user) {
         setUser(user);
       } else {
         setUser(null);
       }
     });
-    return () => unsubscribe();
+
+    // Listen for real-time updates from Firestore
+    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+    const unsubscribePosts = onSnapshot(q, (snapshot) => {
+      const postsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setPosts(postsData);
+    }, (error) => {
+      console.error('Error fetching posts:', error);
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribePosts();
+    };
   }, []);
 
   const addPost = (newPost) => {
-    setPosts([newPost, ...posts]);
+    setPosts([newPost, ...posts]); // Optimistic update
   };
 
   const accountImages = [
@@ -51,12 +65,12 @@ function App() {
             ))}
           </div>
           <div className="post-section">
-            {posts.map((post, index) => (
-              <div key={index} className="post">
+            {posts.map((post) => (
+              <div key={post.id} className="post">
                 <div className="post-header">
                   <div className="post-avatar" style={{ backgroundImage: `url(${post.avatar})`, backgroundSize: 'cover' }}></div>
                   <span className="post-username">{post.username}</span>
-                  <span className="post-time">{post.time}</span>
+                  <span className="post-time">{new Date(post.time).toLocaleString()}</span>
                 </div>
                 <div className="post-image" style={{ backgroundImage: `url(${post.image})`, backgroundSize: 'cover' }}></div>
                 <div className="post-footer">
