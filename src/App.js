@@ -25,7 +25,7 @@ function App() {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribePosts = onSnapshot(q, (snapshot) => {
       const postsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setPosts(postsData);
+      setPosts(postsData.slice(0, 1)); // Limit to one post for mobile view
     }, (error) => {
       console.error('Error fetching posts:', error);
     });
@@ -37,7 +37,7 @@ function App() {
   }, []);
 
   const addPost = (newPost) => {
-    setPosts([newPost, ...posts]);
+    setPosts([newPost, ...posts].slice(0, 1)); // Keep only the latest post
   };
 
   const accountImages = [

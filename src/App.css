@@ -32,9 +32,10 @@ html, body {
 .mobile-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   background-color: #000;
   color: #fff;
+  overflow: hidden;
 }
 
 .mobile-top-bar {
@@ -44,6 +45,8 @@ html, body {
   padding: 10px 16px;
   background-color: #000;
   border-bottom: 1px solid #333;
+  height: 50px;
+  flex-shrink: 0;
 }
 
 .mobile-logo h1 {
@@ -76,8 +79,11 @@ html, body {
   gap: 8px;
   align-items: center;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 0 16px;
   box-sizing: border-box;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .account-circle {
@@ -87,6 +93,7 @@ html, body {
   border: 0px solid transparent;
   border-radius: 50%;
   box-sizing: content-box;
+  flex-shrink: 0;
 }
 
 .account-circle img {
@@ -102,24 +109,22 @@ html, body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  overflow-y: auto;
-  padding-bottom: 60px;
+  overflow: hidden;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .post {
   width: 100%;
   max-width: 470px;
-  height: auto;
+  height: calc(100vh - 50px - 84px - 50px - 16px); /* Top bar, account circles, bottom nav, padding */
   background-color: transparent;
   border-radius: 0;
-  padding: 10px;
-  padding-bottom: 16px;
+  padding: 10px 0;
   border-bottom: 1px solid #333;
-  margin-bottom: 20px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 .post:after {
@@ -132,18 +137,15 @@ html, body {
   background-color: #333;
 }
 
-.post:first-child {
-  margin-top: 0;
-}
-
 .post-header {
   width: 100%;
-  height: auto;
+  height: 50px;
   display: flex;
   align-items: center;
   padding-left: 4px;
   padding-bottom: 12px;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .post-avatar {
@@ -168,19 +170,21 @@ html, body {
 .post-image {
   width: 100%;
   max-width: 468px;
-  height: 585px;
+  height: calc(100% - 50px - 100px); /* Subtract header and footer heights */
   background-color: #222;
   border-radius: 8px;
   box-sizing: border-box;
   background-size: cover;
+  flex-grow: 1;
 }
 
 .post-footer {
   width: 100%;
-  height: auto;
+  height: 100px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .post-actions-row {
@@ -226,6 +230,9 @@ html, body {
   font-size: 14px;
   color: #ccc;
   margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .post-comment-input {
@@ -244,12 +251,15 @@ html, body {
   bottom: 0;
   left: 0;
   width: 100%;
+  height: 50px;
   display: flex;
   justify-content: space-around;
   align-items: center;
   background-color: #000;
   border-top: 1px solid #333;
   padding: 10px 0;
+  flex-shrink: 0;
+  z-index: 1000;
 }
 
 .nav-item {
@@ -278,7 +288,7 @@ html, body {
   .account-circles {
     width: 100%;
     max-width: none;
-    height: auto;
+    height: 84px;
     gap: 4px;
     padding: 0 8px;
   }
@@ -302,7 +312,6 @@ html, body {
   }
   .post-image {
     width: 100%;
-    height: 300px;
   }
   .post-header {
     width: 100%;
