@@ -32,13 +32,9 @@ const CreatePost = ({ user, onAddPost }) => {
         caption,
         userId: user.uid,
         createdAt: serverTimestamp(),
+        // Using a placeholder image URL since storage upload isn't implemented
+        image: 'https://via.placeholder.com/500' // Default post image
       };
-
-      // Assuming storage upload is handled elsewhere; for now, use a placeholder
-      // Replace with actual storage upload logic if needed
-      const storageRef = null; // Placeholder
-      // const imageUrl = await getDownloadURL(storageRef); // Uncomment and implement if using storage
-      // postData.image = imageUrl;
 
       const docRef = await addDoc(collection(db, 'posts'), postData);
       const newPost = { id: docRef.id, ...postData };
