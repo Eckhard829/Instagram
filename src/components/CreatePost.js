@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import './CreatePost.css';
 
 const CreatePost = ({ user, onAddPost }) => {
@@ -23,29 +23,32 @@ const CreatePost = ({ user, onAddPost }) => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const postData = {
-          avatar: user.photoURL || 'https://via.placeholder.com/150',
-          username: user.displayName || user.email.split('@')[0],
-          time: new Date().toISOString(),
-          image: reader.result,
-          likes: 0,
-          caption: caption,
-          userId: user.uid,
-          createdAt: new Date(),
-        };
+    try {
+      const postData = {
+        avatar: user.photoURL || 'https://via.placeholder.com/150',
+        username: user.displayName || user.email.split('@')[0],
+        time: new Date().toISOString(),
+        likes: 0,
+        caption,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      };
 
-        await addDoc(collection(db, 'posts'), postData);
-        onAddPost(postData);
-        navigate('/');
-      } catch (error) {
-        console.error('Error adding post:', error);
-        alert('Failed to create post. Please try again.');
-      }
-    };
-    reader.readAsDataURL(photoFile);
+      // Assuming storage upload is handled elsewhere; for now, use a placeholder
+      // Replace with actual storage upload logic if needed
+      const storageRef = null; // Placeholder
+      // const imageUrl = await getDownloadURL(storageRef); // Uncomment and implement if using storage
+      // postData.image = imageUrl;
+
+      const docRef = await addDoc(collection(db, 'posts'), postData);
+      const newPost = { id: docRef.id, ...postData };
+      onAddPost(newPost);
+      navigate('/');
+      alert('Post created successfully!');
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    }
   };
 
   return (

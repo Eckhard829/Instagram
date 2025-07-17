@@ -23,7 +23,7 @@
   left: 311px;
   width: 1px;
   height: 100vh;
-  background-color: #333; /* Matches the post border color for consistency */
+  background-color: #333;
   z-index: 1;
 }
 
@@ -54,8 +54,8 @@
   margin-bottom: 4px;
   cursor: pointer;
   border-radius: 8px;
-  text-decoration: none; /* Remove underline from links */
-  color: #ffffff; /* Ensure base text color is white */
+  text-decoration: none;
+  color: #ffffff;
 }
 
 .sidebar-item:hover {
@@ -104,13 +104,12 @@
   margin-top: auto;
 }
 
-/* Override link styles to keep "Home" and "Create" white */
 a.sidebar-item,
 a.sidebar-item:hover,
 a.sidebar-item:active,
 a.sidebar-item:visited {
-  color: #ffffff; /* Ensure links stay white */
-  text-decoration: none; /* Remove underline */
+  color: #ffffff;
+  text-decoration: none;
 }
 
 @media (max-width: 768px) {

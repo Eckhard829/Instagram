@@ -41,10 +41,10 @@ const Sidebar = ({ user }) => {
           <span className="material-symbols-outlined">insert_chart</span>
           <span className="sidebar-label">Dashboard</span>
         </div>
-        <div className="sidebar-item">
+        <Link to={user ? "/profile" : "#"} onClick={() => !user && alert('Please log in to view your profile.')} className="sidebar-item">
           <span className="material-symbols-outlined">person</span>
           <span className="sidebar-label">Profile</span>
-        </div>
+        </Link>
       </div>
       <div className="sidebar-more">
         <div className="sidebar-item">

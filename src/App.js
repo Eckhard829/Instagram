@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { auth } from './firebase';
 import { db } from './firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import Auth from './components/Auth';
 import CreatePost from './components/CreatePost';
+import Profile from './components/Profile';
 import Sidebar from './components/Sidebar';
 import RightMenu from './components/RightMenu';
 import './App.css';
@@ -15,8 +16,16 @@ function App() {
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      console.log('Auth state changed:', user);
       if (user) {
         setUser(user);
+        // Sync additional user data from Firestore
+        const unsubscribeUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+          if (docSnap.exists()) {
+            setUser((prevUser) => ({ ...prevUser, ...docSnap.data() }));
+          }
+        });
+        return () => unsubscribeUser();
       } else {
         setUser(null);
       }
@@ -25,7 +34,7 @@ function App() {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribePosts = onSnapshot(q, (snapshot) => {
       const postsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setPosts(postsData.slice(0, 1)); // Limit to one post for mobile view
+      setPosts(postsData.slice(0, 1));
     }, (error) => {
       console.error('Error fetching posts:', error);
     });
@@ -37,7 +46,7 @@ function App() {
   }, []);
 
   const addPost = (newPost) => {
-    setPosts([newPost, ...posts].slice(0, 1)); // Keep only the latest post
+    setPosts([newPost, ...posts].slice(0, 1));
   };
 
   const accountImages = [
@@ -73,9 +82,9 @@ function App() {
         {posts.map((post) => (
           <div key={post.id} className="post">
             <div className="post-header">
-              <div className="post-avatar" style={{ backgroundImage: `url(${post.avatar})`, backgroundSize: 'cover' }}></div>
-              <span className="post-username">{post.username}</span>
-              <span className="post-time">{new Date(post.time).toLocaleString()}</span>
+              <div className="post-avatar" style={{ backgroundImage: `url(${post.avatar || user?.photoURL || 'https://via.placeholder.com/150'})`, backgroundSize: 'cover' }}></div>
+              <span className="post-username">{post.username || user?.displayName || user?.email.split('@')[0]}</span>
+              <span className="post-time">{new Date(post.time || Date.now()).toLocaleString()}</span>
             </div>
             <div className="post-image" style={{ backgroundImage: `url(${post.image})`, backgroundSize: 'cover' }}></div>
             <div className="post-footer">
@@ -89,9 +98,9 @@ function App() {
                   <span className="material-symbols-outlined">bookmark</span>
                 </div>
               </div>
-              <div className="post-likes">{post.likes} likes</div>
+              <div className="post-likes">{post.likes || 0} likes</div>
               <div className="post-caption">
-                <span className="post-username">{post.username}</span> {post.caption}
+                <span className="post-username">{post.username || user?.displayName || user?.email.split('@')[0]}</span> {post.caption}
               </div>
               <input type="text" className="post-comment-input" placeholder="Add a comment..." />
             </div>
@@ -99,21 +108,21 @@ function App() {
         ))}
       </div>
       <div className="mobile-bottom-nav">
-        <Link to="/" className="nav-item">
-          <span className="material-symbols-outlined">home</span>
-        </Link>
+        <span className="nav-item">
+          <Link to="/">home</Link>
+        </span>
         <div className="nav-item">
           <span className="material-symbols-outlined">search</span>
         </div>
-        <Link to={user ? "/create" : "#"} onClick={() => !user && alert('Please log in to create a post.')} className="nav-item">
-          <span className="material-symbols-outlined">add_box</span>
-        </Link>
+        <span className="nav-item">
+          <Link to={user ? "/create" : "#"} onClick={() => !user && alert('Please log in to create a post.')}>add_box</Link>
+        </span>
         <div className="nav-item">
           <span className="material-symbols-outlined">movie</span>
         </div>
-        <div className="nav-item">
-          <span className="material-symbols-outlined">person</span>
-        </div>
+        <span className="nav-item">
+          <Link to={user ? "/profile" : "#"} onClick={() => !user && alert('Please log in to view your profile.')}>person</Link>
+        </span>
       </div>
     </div>
   );
@@ -134,9 +143,9 @@ function App() {
             {posts.map((post) => (
               <div key={post.id} className="post">
                 <div className="post-header">
-                  <div className="post-avatar" style={{ backgroundImage: `url(${post.avatar})`, backgroundSize: 'cover' }}></div>
-                  <span className="post-username">{post.username}</span>
-                  <span className="post-time">{new Date(post.time).toLocaleString()}</span>
+                  <div className="post-avatar" style={{ backgroundImage: `url(${post.avatar || user?.photoURL || 'https://via.placeholder.com/150'})`, backgroundSize: 'cover' }}></div>
+                  <span className="post-username">{post.username || user?.displayName || user?.email.split('@')[0]}</span>
+                  <span className="post-time">{new Date(post.time || Date.now()).toLocaleString()}</span>
                 </div>
                 <div className="post-image" style={{ backgroundImage: `url(${post.image})`, backgroundSize: 'cover' }}></div>
                 <div className="post-footer">
@@ -150,9 +159,9 @@ function App() {
                       <span className="material-symbols-outlined">bookmark</span>
                     </div>
                   </div>
-                  <div className="post-likes">{post.likes} likes</div>
+                  <div className="post-likes">{post.likes || 0} likes</div>
                   <div className="post-caption">
-                    <span className="post-username">{post.username}</span> {post.caption}
+                    <span className="post-username">{post.username || user?.displayName || user?.email.split('@')[0]}</span> {post.caption}
                   </div>
                   <input type="text" className="post-comment-input" placeholder="Add a comment..." />
                 </div>
@@ -168,23 +177,23 @@ function App() {
   return (
     <Router>
       <div className="app">
-        {user ? (
-          <Routes>
-            <Route path="/" element={
-              <div className="responsive-container">
-                <div className="mobile-view">
-                  <MobileHomePage />
-                </div>
-                <div className="desktop-view">
-                  <DesktopHomePage />
-                </div>
-              </div>
-            } />
-            <Route path="/create" element={<CreatePost user={user} onAddPost={addPost} />} />
-          </Routes>
-        ) : (
-          <Auth setUser={setUser} />
-        )}
+        <Routes>
+          <Route path="/auth" element={<Auth setUser={setUser} />} />
+          <Route
+            path="/*"
+            element={
+              user ? (
+                <Routes>
+                  <Route path="/" element={<div className="responsive-container"><div className="mobile-view"><MobileHomePage /></div><div className="desktop-view"><DesktopHomePage /></div></div>} />
+                  <Route path="/create" element={<CreatePost user={user} onAddPost={addPost} />} />
+                  <Route path="/profile" element={<Profile user={user} />} />
+                </Routes>
+              ) : (
+                <Navigate to="/auth" />
+              )
+            }
+          />
+        </Routes>
       </div>
     </Router>
   );
