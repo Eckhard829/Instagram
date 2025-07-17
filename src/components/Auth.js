@@ -20,7 +20,7 @@ const Auth = ({ setUser }) => {
     try {
       if (isLogin) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        setUser(userCredential.user); // Set user after login
+        setUser(userCredential.user);
         navigate('/');
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -33,12 +33,22 @@ const Auth = ({ setUser }) => {
           followers: 0,
           following: 0,
         });
-        setUser(userCredential.user); // Set user after signup
+        setUser(userCredential.user);
         navigate('/');
       }
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleForgotPassword = () => {
+    // Add your forgot password logic here
+    console.log('Forgot password clicked');
+  };
+
+  const handleFooterLinkClick = (linkName) => {
+    // Add your footer link navigation logic here
+    console.log(`${linkName} clicked`);
   };
 
   return (
@@ -113,7 +123,9 @@ const Auth = ({ setUser }) => {
         </form>
         <div className="divider">OR</div>
         <button className="facebook-login">Log in with Facebook</button>
-        <a href="#" className="forgot-password">Forgot password?</a>
+        <button onClick={handleForgotPassword} className="forgot-password">
+          Forgot password?
+        </button>
         {error && <p className="error-message">{error}</p>}
         <button
           onClick={() => setIsLogin(!isLogin)}
@@ -122,7 +134,19 @@ const Auth = ({ setUser }) => {
           {isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"}
         </button>
         <div className="footer-links">
-          <a href="#">Meta</a> <a href="#">About</a> <a href="#">Blog</a> <a href="#">Jobs</a> <a href="#">Help</a> <a href="#">API</a> <a href="#">Privacy</a> <a href="#">Terms</a> <a href="#">Locations</a> <a href="#">Instagram Lite</a> <a href="#">Threads</a> <a href="#">Contact Uploading & Non-Users</a> <a href="#">Meta Verified</a>
+          <button onClick={() => handleFooterLinkClick('Meta')}>Meta</button>
+          <button onClick={() => handleFooterLinkClick('About')}>About</button>
+          <button onClick={() => handleFooterLinkClick('Blog')}>Blog</button>
+          <button onClick={() => handleFooterLinkClick('Jobs')}>Jobs</button>
+          <button onClick={() => handleFooterLinkClick('Help')}>Help</button>
+          <button onClick={() => handleFooterLinkClick('API')}>API</button>
+          <button onClick={() => handleFooterLinkClick('Privacy')}>Privacy</button>
+          <button onClick={() => handleFooterLinkClick('Terms')}>Terms</button>
+          <button onClick={() => handleFooterLinkClick('Locations')}>Locations</button>
+          <button onClick={() => handleFooterLinkClick('Instagram Lite')}>Instagram Lite</button>
+          <button onClick={() => handleFooterLinkClick('Threads')}>Threads</button>
+          <button onClick={() => handleFooterLinkClick('Contact Uploading')}>Contact Uploading</button>
+          <button onClick={() => handleFooterLinkClick('Meta Verified')}>Meta Verified</button>
         </div>
         <p className="footer-copyright">© 2025 Instagram from Meta</p>
       </div>
