@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Kept for mobile layout
 import './Profile.css';
 import Sidebar from './Sidebar';
 
