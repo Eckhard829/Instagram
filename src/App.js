@@ -19,7 +19,6 @@ function App() {
       console.log('Auth state changed:', user);
       if (user) {
         setUser(user);
-        // Sync additional user data from Firestore
         const unsubscribeUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
           if (docSnap.exists()) {
             setUser((prevUser) => ({ ...prevUser, ...docSnap.data() }));
@@ -109,19 +108,23 @@ function App() {
       </div>
       <div className="mobile-bottom-nav">
         <span className="nav-item">
-          <Link to="/">home</Link>
+          <Link to="/"><span className="material-symbols-outlined">home</span></Link>
         </span>
         <div className="nav-item">
           <span className="material-symbols-outlined">search</span>
         </div>
         <span className="nav-item">
-          <Link to={user ? "/create" : "#"} onClick={() => !user && alert('Please log in to create a post.')}>add_box</Link>
+          <Link to={user ? "/create" : "#"} onClick={() => !user && alert('Please log in to create a post.')}>
+            <span className="material-symbols-outlined">add_box</span>
+          </Link>
         </span>
         <div className="nav-item">
           <span className="material-symbols-outlined">movie</span>
         </div>
         <span className="nav-item">
-          <Link to={user ? "/profile" : "#"} onClick={() => !user && alert('Please log in to view your profile.')}>person</Link>
+          <Link to={user ? "/profile" : "#"} onClick={() => !user && alert('Please log in to view your profile.')}>
+            <span className="material-symbols-outlined">account_circle</span>
+          </Link>
         </span>
       </div>
     </div>
