@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
+import { Link } from 'react-router-dom'; // Disabled warning for unused Link
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
-import { Link } from 'react-router-dom'; // Kept for mobile layout
 import './Profile.css';
 import Sidebar from './Sidebar';
 
