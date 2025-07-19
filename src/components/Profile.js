@@ -12,6 +12,7 @@ const Profile = ({ user }) => {
   const [bio, setBio] = useState(user.bio || '');
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
+  const [photoURL, setPhotoURL] = useState(user.photoURL || 'https://via.placeholder.com/150');
 
   useEffect(() => {
     if (!user?.uid) {
@@ -35,6 +36,7 @@ const Profile = ({ user }) => {
         setBio(data.bio || '');
         setFollowers(data.followers || 0);
         setFollowing(data.following || 0);
+        setPhotoURL(data.photoURL || 'https://via.placeholder.com/150');
       }
     });
 
@@ -50,14 +52,11 @@ const Profile = ({ user }) => {
 
   return (
     <>
-      {/* Desktop layout */}
-      <div className="profile-page">
+      {/* Desktop layout - No bottom nav */}
+      <div className="profile-page desktop-layout">
         <Sidebar user={user} />
         <div className="profile-content">
           <div className="profile-header">
-            <div className="profile-avatar">
-              <img src={user.photoURL || 'https://via.placeholder.com/150'} alt="Profile" />
-            </div>
             <div className="profile-info">
               <h2 className="profile-username">{displayName}</h2>
             </div>
@@ -78,7 +77,7 @@ const Profile = ({ user }) => {
         </div>
       </div>
 
-      {/* Mobile layout */}
+      {/* Mobile layout - With bottom nav */}
       <div className="mobile-container">
         <div className="mobile-top-bar">
           <div className="mobile-logo">
@@ -90,9 +89,6 @@ const Profile = ({ user }) => {
           </div>
         </div>
         <div className="profile-header">
-          <div className="profile-avatar">
-            <img src={user.photoURL || 'https://via.placeholder.com/150'} alt="Profile" />
-          </div>
           <div className="profile-info">
             <h2 className="profile-username">{displayName}</h2>
             <div className="profile-stats">
@@ -109,9 +105,9 @@ const Profile = ({ user }) => {
               <div className="post-header">
                 <div
                   className="post-avatar"
-                  style={{ backgroundImage: `url(${post.avatar || user?.photoURL || 'https://via.placeholder.com/150'})`, backgroundSize: 'cover' }}
+                  style={{ backgroundImage: `url(${post.avatar || photoURL})`, backgroundSize: 'cover' }}
                 ></div>
-                <span className="post-username">{post.username || user?.displayName || user?.email.split('@')[0]}</span>
+                <span className="post-username">{post.username || displayName}</span>
                 <span className="post-time">{new Date(post.time || Date.now()).toLocaleString()}</span>
               </div>
               <div
@@ -131,7 +127,7 @@ const Profile = ({ user }) => {
                 </div>
                 <div className="post-likes">{post.likes || 0} likes</div>
                 <div className="post-caption">
-                  <span className="post-username">{post.username || user?.displayName || user?.email.split('@')[0]}</span> {post.caption}
+                  <span className="post-username">{post.username || displayName}</span> {post.caption}
                 </div>
                 <input type="text" className="post-comment-input" placeholder="Add a comment..." />
               </div>
