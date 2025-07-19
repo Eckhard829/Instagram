@@ -173,7 +173,7 @@ function App() {
           </div>
         </div>
       </div>
-      <RightMenu />
+      <RightMenu user={user} />
     </div>
   );
 

@@ -1,15 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 import './RightMenu.css';
 
 const RightMenu = ({ user }) => {
   const navigate = useNavigate();
+  const [userData, setUserData] = useState({ displayName: '' });
+
+  useEffect(() => {
+    if (user?.uid) {
+      const unsubscribe = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+        if (docSnap.exists()) {
+          setUserData(docSnap.data());
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user?.uid]);
 
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      navigate('/'); 
+      navigate('/auth');
     } catch (error) {
       console.error('Logout failed:', error.message);
     }
@@ -41,15 +55,8 @@ const RightMenu = ({ user }) => {
   return (
     <div className="right-menu">
       <div className="profile-section">
-        <div className="profile-avatar">
-          <img
-            src={user?.photoURL || 'https://via.placeholder.com/150'}
-            alt="Profile"
-          />
-        </div>
         <div className="profile-info">
-          <span className="profile-username">{user?.displayName || user?.email.split('@')[0]}</span>
-          <span className="profile-name">{user?.displayName || user?.email.split('@')[0]}</span>
+          <span className="profile-username">{userData.displayName || user?.email.split('@')[0]}</span>
         </div>
         <button className="switch-button" onClick={handleLogout}>Switch</button>
       </div>
