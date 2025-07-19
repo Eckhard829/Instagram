@@ -85,18 +85,7 @@
 
 @media (max-width: 768px) {
   .profile-page {
-    display: block;
-    height: auto;
-  }
-  .sidebar {
-    display: none;
-  }
-  .profile-content {
-    margin-left: 0;
-    padding: 0;
-    width: 100%;
-    height: auto;
-    display: none; /* Hide desktop content on mobile */
+    display: none; /* Hide desktop layout on mobile */
   }
   .mobile-container {
     display: flex;
@@ -165,14 +154,13 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    overflow: hidden;
+    overflow-y: auto; /* Enable scrolling for posts */
     padding: 0 16px;
     box-sizing: border-box;
   }
   .post {
     width: 100%;
     max-width: 470px;
-    height: calc(100vh - 50px - 50px - 16px); /* Top bar, bottom nav, padding */
     background-color: transparent;
     border-radius: 0;
     padding: 10px 0;
@@ -210,12 +198,11 @@
   .post-image {
     width: 100%;
     max-width: 468px;
-    height: calc(100% - 50px - 100px); /* Header and footer heights */
+    height: 400px; /* Fixed height for consistency with home page */
     background-color: #222;
     border-radius: 8px;
     box-sizing: border-box;
-    background-size: cover;
-    flex-grow: 1;
+    margin: 10px 0;
   }
   .post-footer {
     width: 100%;
