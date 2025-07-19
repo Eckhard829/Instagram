@@ -84,7 +84,7 @@
 }
 
 @media (max-width: 768px) {
-  .profile-page {
+  .profile-page.desktop-layout {
     display: none; /* Hide desktop layout on mobile */
   }
   .mobile-container {
@@ -154,7 +154,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    overflow-y: auto; /* Enable scrolling for posts */
+    overflow-y: auto;
     padding: 0 16px;
     box-sizing: border-box;
   }
@@ -198,7 +198,7 @@
   .post-image {
     width: 100%;
     max-width: 468px;
-    height: 400px; /* Fixed height for consistency with home page */
+    height: 400px;
     background-color: #222;
     border-radius: 8px;
     box-sizing: border-box;
@@ -283,5 +283,11 @@
   }
   .nav-item .material-symbols-outlined {
     font-size: 24px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-bottom-nav {
+    display: none !important; /* Stronger specificity to override any conflicts */
   }
 }
