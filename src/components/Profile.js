@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { Link } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, orderBy } from 'firebase/firestore';
 import './Profile.css';
 import Sidebar from './Sidebar';
 
 const Profile = ({ user }) => {
   const [posts, setPosts] = useState([]);
-  const [displayName, setDisplayName] = useState(user.displayName || user.email.split('@')[0]);
-  const [bio, setBio] = useState(user.bio || '');
+  const [displayName, setDisplayName] = useState(user?.displayName || user?.email?.split('@')[0] || 'Anonymous');
+  const [bio, setBio] = useState('');
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
-  const [photoURL, setPhotoURL] = useState(user.photoURL || 'https://via.placeholder.com/150');
+  const [photoURL, setPhotoURL] = useState(user?.photoURL || 'https://via.placeholder.com/150');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -24,22 +25,68 @@ const Profile = ({ user }) => {
   useEffect(() => {
     if (!user?.uid) {
       console.error('No user UID available');
+      setLoading(false);
       return;
     }
 
+    // Fetch user's posts with image reconstruction
     const postsQuery = query(
       collection(db, 'posts'),
-      where('userId', '==', user.uid)
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
-    const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
-      setPosts(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    }, (error) => console.error('Error fetching posts:', error));
+    
+    const unsubscribePosts = onSnapshot(postsQuery, async (snapshot) => {
+      const postsData = [];
+      
+      for (const docSnap of snapshot.docs) {
+        const postData = { id: docSnap.id, ...docSnap.data() };
+        
+        // If post has image chunks, reassemble them
+        if (postData.imageChunks && postData.imageChunks > 0) {
+          try {
+            const imageChunksQuery = query(
+              collection(db, 'posts', docSnap.id, 'imageChunks'), 
+              orderBy('index')
+            );
+            
+            const chunksSnapshot = await new Promise((resolve) => {
+              const unsubscribeChunks = onSnapshot(imageChunksQuery, resolve);
+              // Clean up immediately after getting data
+              setTimeout(() => unsubscribeChunks(), 100);
+            });
+            
+            const chunks = [];
+            chunksSnapshot.forEach((chunkDoc) => {
+              const chunkData = chunkDoc.data();
+              chunks[chunkData.index] = chunkData.data;
+            });
+            
+            // Reassemble full image
+            const fullImage = chunks.join('');
+            postData.image = fullImage;
+          } catch (error) {
+            console.error('Error loading image chunks for post:', docSnap.id, error);
+            postData.image = 'https://via.placeholder.com/400x400?text=Image+Failed+to+Load';
+          }
+        }
+        
+        postsData.push(postData);
+      }
+      
+      setPosts(postsData);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching posts:', error);
+      setLoading(false);
+    });
 
+    // Fetch user profile data
     const userRef = doc(db, 'users', user.uid);
     const unsubscribeUser = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setDisplayName(data.displayName || user.email.split('@')[0]);
+        setDisplayName(data.displayName || user.email?.split('@')[0] || 'Anonymous');
         setBio(data.bio || '');
         setFollowers(data.followers || 0);
         setFollowing(data.following || 0);
@@ -64,6 +111,9 @@ const Profile = ({ user }) => {
           <Sidebar user={user} />
           <div className="profile-content">
             <div className="profile-header">
+              <div className="profile-avatar">
+                <img src={photoURL} alt="Profile" />
+              </div>
               <div className="profile-info">
                 <h2 className="profile-username">{displayName}</h2>
               </div>
@@ -75,11 +125,46 @@ const Profile = ({ user }) => {
             </div>
             <div className="profile-bio">{bio || 'No bio yet'}</div>
             <div className="profile-posts">
-              {posts.map((post) => (
-                <div key={post.id} className="profile-post">
-                  <img src={post.image} alt="Post" />
+              {loading ? (
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  height: '200px', 
+                  color: '#fff',
+                  gridColumn: '1 / -1'
+                }}>
+                  Loading posts...
                 </div>
-              ))}
+              ) : posts.length === 0 ? (
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  height: '200px', 
+                  color: '#999',
+                  gridColumn: '1 / -1',
+                  flexDirection: 'column'
+                }}>
+                  <p>No posts yet</p>
+                  <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
+                    Create your first post!
+                  </Link>
+                </div>
+              ) : (
+                posts.map((post) => (
+                  <div key={post.id} className="profile-post">
+                    <img 
+                      src={post.image} 
+                      alt="Post" 
+                      onError={(e) => {
+                        console.error('Image failed to load for post:', post.id);
+                        e.target.src = 'https://via.placeholder.com/400x400?text=Image+Failed+to+Load';
+                      }}
+                    />
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -96,6 +181,9 @@ const Profile = ({ user }) => {
             </div>
           </div>
           <div className="profile-header">
+            <div className="profile-avatar">
+              <img src={photoURL} alt="Profile" style={{ width: '56px', height: '56px' }} />
+            </div>
             <div className="profile-info">
               <h2 className="profile-username">{displayName}</h2>
               <div className="profile-stats">
@@ -107,39 +195,76 @@ const Profile = ({ user }) => {
             </div>
           </div>
           <div className="post-section">
-            {posts.map((post) => (
-              <div key={post.id} className="post">
-                <div className="post-header">
-                  <div
-                    className="post-avatar"
-                    style={{ backgroundImage: `url(${post.avatar || photoURL})`, backgroundSize: 'cover' }}
-                  ></div>
-                  <span className="post-username">{post.username || displayName}</span>
-                  <span className="post-time">{new Date(post.time || Date.now()).toLocaleString()}</span>
-                </div>
-                <div
-                  className="post-image"
-                  style={{ backgroundImage: `url(${post.image})`, backgroundSize: 'cover' }}
-                ></div>
-                <div className="post-footer">
-                  <div className="post-actions-row">
-                    <div className="post-actions">
-                      <span className="material-symbols-outlined">favorite</span>
-                      <span className="material-symbols-outlined">chat_bubble</span>
-                      <span className="material-symbols-outlined">send</span>
-                    </div>
-                    <div className="post-bookmark">
-                      <span className="material-symbols-outlined">bookmark</span>
-                    </div>
-                  </div>
-                  <div className="post-likes">{post.likes || 0} likes</div>
-                  <div className="post-caption">
-                    <span className="post-username">{post.username || displayName}</span> {post.caption}
-                  </div>
-                  <input type="text" className="post-comment-input" placeholder="Add a comment..." />
-                </div>
+            {loading ? (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '200px', 
+                color: '#fff'
+              }}>
+                Loading posts...
               </div>
-            ))}
+            ) : posts.length === 0 ? (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '200px', 
+                color: '#999',
+                flexDirection: 'column'
+              }}>
+                <p>No posts yet</p>
+                <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
+                  Create your first post!
+                </Link>
+              </div>
+            ) : (
+              posts.map((post) => (
+                <div key={post.id} className="post">
+                  <div className="post-header">
+                    <div
+                      className="post-avatar"
+                      style={{ 
+                        backgroundImage: `url(${post.avatar || photoURL})`, 
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center' 
+                      }}
+                    ></div>
+                    <span className="post-username">{post.username || displayName}</span>
+                    <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleString()}</span>
+                  </div>
+                  <div className="post-image">
+                    <img 
+                      src={post.image} 
+                      alt="Post"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                      onError={(e) => {
+                        console.error('Image failed to load for post:', post.id);
+                        e.target.src = 'https://via.placeholder.com/400x400?text=Image+Failed+to+Load';
+                      }}
+                    />
+                  </div>
+                  <div className="post-footer">
+                    <div className="post-actions-row">
+                      <div className="post-actions">
+                        <span className="material-symbols-outlined">favorite</span>
+                        <span className="material-symbols-outlined">chat_bubble</span>
+                        <span className="material-symbols-outlined">send</span>
+                      </div>
+                      <div className="post-bookmark">
+                        <span className="material-symbols-outlined">bookmark</span>
+                      </div>
+                    </div>
+                    <div className="post-likes">{post.likes?.length || 0} likes</div>
+                    <div className="post-caption">
+                      <span className="post-username">{post.username || displayName}</span> {post.caption}
+                    </div>
+                    <input type="text" className="post-comment-input" placeholder="Add a comment..." />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
           <div className="mobile-bottom-nav">
             <span className="nav-item">

@@ -5,6 +5,13 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import './RightMenu.css';
 
+// Import local images for suggested accounts
+import rightmenu1 from '../assets/rightmenu1.jpg';
+import rightmenu2 from '../assets/rightmenu2.jpg';
+import rightmenu3 from '../assets/rightmenu3.jpg';
+import rightmenu4 from '../assets/rightmenu4.jpg';
+import rightmenu5 from '../assets/rightmenu5.jpg';
+
 const RightMenu = ({ user }) => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({ displayName: '' });
@@ -31,23 +38,23 @@ const RightMenu = ({ user }) => {
 
   const suggestedAccounts = [
     {
-      avatar: 'https://scontent-jnb2-1.cdninstagram.com/v/t51.2885-19/451296612_1048981546089583_819019792332240137_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=110&ccb=1-7&_nc_sid=f7ccc5&_nc_ohc=W_E-Be__cLEQ7kNvwEDU2u2&_nc_oc=AdmGle4v8fhx9m-E9vUxMCzIJp4-h1J4ErbzyH5qul2AMdgGrB1dZ3dKBaCU9d5hy9c&_nc_ad=z-m&_nc_cid=0&_nc_zt=24&_nc_ht=scontent-jnb2-1.cdninstagram.com&oh=00_AfRTa8T_XR9PUuqN1DryKfZkcFEH7fwc0NFrQPGxHYAm3w&oe=68841279',
+      avatar: rightmenu1,
       username: 'scubadiecruiser'
     },
     {
-      avatar: 'https://scontent-jnb2-1.cdninstagram.com/v/t51.75761-19/502567885_18277074568261798_7044606760577479591_n.jpg?stp=dst-jpg_s100x100_tt6&_nc_cat=103&ccb=1-7&_nc_sid=bf7eb4&_nc_ohc=0HoaiVY7NzoQ7kNvwFZylFu&_nc_oc=AdnV0JdwIE5DWdchHhI2JeH5X58fjNQImMrQ48V9OjB-lYK21rA1AdQVEUKo1mnmgqE&_nc_ad=z-m&_nc_cid=0&_nc_zt=24&_nc_ht=scontent-jnb2-1.cdninstagram.com&_nc_gid=ahiQp3s8Z61cvYXtyIsoTg&oh=00_AfToqYa-Qg2nu4gaXgxQ3hKLfxjCitc9L94P1oSsc1p7EA&oe=688417CD',
+      avatar: rightmenu2,
       username: 'leanka_botha'
     },
     {
-      avatar: 'https://scontent-jnb2-1.cdninstagram.com/v/t51.2885-19/465311917_872318534667436_1007641874863759883_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=110&ccb=1-7&_nc_sid=f7ccc5&_nc_ohc=B58VbTcCR4cQ7kNvwHj-Jhv&_nc_oc=AdkChk9oDkOQ_QDxbedV7mmGgOKrrfKjomjmPu3E2RD4mlE45x4LCEz8bJs3AT2SlRE&_nc_zt=24&_nc_ht=scontent-jnb2-1.cdninstagram.com&oh=00_AfQe4FD-VGnkEIgiHQgES9Rm36Jhgfh67cBdH9mFKgosYQ&oe=688404DA',
+      avatar: rightmenu3,
       username: 'fuls3ndgp'
     },
     {
-      avatar: 'https://scontent-jnb2-1.cdninstagram.com/v/t51.2885-19/472443237_513096317802356_5677648228418942794_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=109&ccb=1-7&_nc_sid=f7ccc5&_nc_ohc=AbmvYxJmd7gQ7kNvwHcr8PP&_nc_oc=Adn2KYkFuQU65WDsXdnfjzhj216Adl8d-5yUaqWLO3VgQhu9ilmAOtbnb79uyr71FHU&_nc_ad=z-m&_nc_cid=0&_nc_zt=24&_nc_ht=scontent-jnb2-1.cdninstagram.com&oh=00_AfRmXeiUc9LsKchjo9SCTE7Ag7fSAVXPFip1l4KvcxLb2Q&oe=6884141F',
+      avatar: rightmenu4,
       username: 'pulselusso'
     },
     {
-      avatar: 'https://scontent-jnb2-1.cdninstagram.com/v/t51.2885-19/325935276_1177127159614252_2467561970039277535_n.jpg?stp=dst-jpg_s100x100_tt6&_nc_cat=103&ccb=1-7&_nc_sid=bf7eb4&_nc_ohc=LjHhZywoiloQ7kNvwHc6-nD&_nc_oc=Adl7cOKJW1nNALG_oNVXNvccYO5SDmtrnprtdRlH0zMQ3PhqmICek41FHW-6Q3SUUPs&_nc_ad=z-m&_nc_cid=0&_nc_zt=24&_nc_ht=scontent-jnb2-1.cdninstagram.com&oh=00_AfTQprExOU22Xfq_dW4naftZ7YfRquDMPXJJVsIlh6u5uA&oe=68840D7D',
+      avatar: rightmenu5,
       username: 'jonathan_smit_05'
     }
   ];

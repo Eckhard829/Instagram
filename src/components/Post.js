@@ -1,35 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+import Stories from './Stories';
+import Post from './Post';
+import './App.css';
 import './Post.css';
 
-const Post = ({ posts }) => {
+const Post = () => {
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const postsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        time: doc.data().createdAt, // Normalize createdAt to time for Post.js
+      }));
+      setPosts(postsData);
+    }, (error) => console.error('Error fetching posts:', error));
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="post-section">
-      {posts.map((post) => (
-        <div key={post.id} className="post">
-          <div className="post-header">
-            <div className="post-avatar"></div>
-            <span className="post-username">{post.username}</span>
-            <span className="post-time">{post.time}</span>
-          </div>
-          <div className="post-image">
-            <img src={post.image} alt="Post" />
-          </div>
-          <div className="post-footer">
-            <div className="post-actions">
-              <span>❤️</span>
-              <span>💬</span>
-              <span>📤</span>
-            </div>
-            <div className="post-likes">{post.likes}</div>
-            <div className="post-caption">{post.caption}</div>
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              className="post-comment-input"
-            />
-          </div>
-        </div>
-      ))}
+      <Stories />
+      <Post posts={posts} />
     </div>
   );
 };
