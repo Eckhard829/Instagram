@@ -8,6 +8,7 @@ import CreatePost from './components/CreatePost';
 import Profile from './components/Profile';
 import Sidebar from './components/Sidebar';
 import RightMenu from './components/RightMenu';
+import PostComponent from './components/PostComponent';
 import './App.css';
 
 // Import local images
@@ -30,9 +31,16 @@ function App() {
       console.log('Auth state changed:', user);
       if (user) {
         setUser(user);
+        // Listen for user data updates
         const unsubscribeUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
           if (docSnap.exists()) {
-            setUser((prevUser) => ({ ...prevUser, ...docSnap.data() }));
+            const userData = docSnap.data();
+            setUser((prevUser) => ({ 
+              ...prevUser, 
+              ...userData,
+              uid: user.uid, // Ensure UID is preserved
+              email: user.email // Ensure email is preserved
+            }));
           }
         });
         return () => unsubscribeUser();
@@ -41,9 +49,11 @@ function App() {
       }
     });
 
-    // Fetch ALL posts, not just 1
+    // Fetch ALL posts from Firestore (public feed)
+    // Remove any user-specific filtering to ensure all users see all posts
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribePosts = onSnapshot(q, async (snapshot) => {
+      console.log('Fetching posts, found:', snapshot.docs.length);
       const postsData = [];
       
       for (const docSnap of snapshot.docs) {
@@ -57,8 +67,15 @@ function App() {
               orderBy('index')
             );
             
-            const chunksSnapshot = await new Promise((resolve) => {
-              const unsubscribeChunks = onSnapshot(imageChunksQuery, resolve);
+            const chunksSnapshot = await new Promise((resolve, reject) => {
+              const unsubscribeChunks = onSnapshot(
+                imageChunksQuery, 
+                resolve,
+                (error) => {
+                  console.error('Error fetching chunks:', error);
+                  reject(error);
+                }
+              );
               // Clean up immediately after getting data
               setTimeout(() => unsubscribeChunks(), 100);
             });
@@ -78,10 +95,18 @@ function App() {
           }
         }
         
+        // Ensure post has required fields
+        postData.username = postData.username || 'Anonymous';
+        postData.avatar = postData.avatar || 'https://via.placeholder.com/150';
+        postData.caption = postData.caption || '';
+        postData.likes = postData.likes || [];
+        postData.createdAt = postData.createdAt || new Date().toISOString();
+        
         postsData.push(postData);
       }
       
-      setPosts(postsData); // Show ALL posts, not just slice(0, 1)
+      console.log('Processed posts:', postsData.length);
+      setPosts(postsData);
       setLoading(false);
     }, (error) => {
       console.error('Error fetching posts:', error);
@@ -95,11 +120,11 @@ function App() {
   }, []);
 
   const addPost = (newPost) => {
-    // Add new post to the beginning of the array, keep all existing posts
-    setPosts([newPost, ...posts]);
+    // Add new post to the beginning of the list
+    setPosts(prevPosts => [newPost, ...prevPosts]);
   };
 
-  // Use imported local images
+  // Use imported local images for stories
   const accountImages = [
     image1,
     image2,
@@ -150,68 +175,15 @@ function App() {
             flexDirection: 'column'
           }}>
             <p>No posts yet</p>
-            <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
-              Create your first post!
-            </Link>
+            {user && (
+              <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
+                Create the first post!
+              </Link>
+            )}
           </div>
         ) : (
           posts.map((post) => (
-            <div key={post.id} className="post">
-              <div className="post-header">
-                <div 
-                  className="post-avatar" 
-                  style={{ 
-                    backgroundImage: `url(${post.avatar || user?.photoURL || 'https://via.placeholder.com/150'})`, 
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center' 
-                  }}
-                ></div>
-                <span className="post-username">{post.username || user?.displayName || user?.email?.split('@')[0]}</span>
-                <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleString()}</span>
-              </div>
-              <div className="post-image">
-                {post.image ? (
-                  <img 
-                    src={post.image} 
-                    alt="Post" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                    onError={(e) => {
-                      console.error('Image failed to load for post:', post.id);
-                      e.target.src = 'https://via.placeholder.com/400x400?text=Image+Failed+to+Load';
-                    }}
-                  />
-                ) : (
-                  <div style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    backgroundColor: '#222', 
-                    color: '#999' 
-                  }}>
-                    Loading image...
-                  </div>
-                )}
-              </div>
-              <div className="post-footer">
-                <div className="post-actions-row">
-                  <div className="post-actions">
-                    <span className="material-symbols-outlined">favorite</span>
-                    <span className="material-symbols-outlined">chat_bubble</span>
-                    <span className="material-symbols-outlined">send</span>
-                  </div>
-                  <div className="post-bookmark">
-                    <span className="material-symbols-outlined">bookmark</span>
-                  </div>
-                </div>
-                <div className="post-likes">{post.likes?.length || 0} likes</div>
-                <div className="post-caption">
-                  <span className="post-username">{post.username || user?.displayName || user?.email?.split('@')[0]}</span> {post.caption}
-                </div>
-                <input type="text" className="post-comment-input" placeholder="Add a comment..." />
-              </div>
-            </div>
+            <PostComponent key={post.id} post={post} user={user} />
           ))
         )}
       </div>
@@ -272,68 +244,15 @@ function App() {
                 flexDirection: 'column'
               }}>
                 <p>No posts yet</p>
-                <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
-                  Create your first post!
-                </Link>
+                {user && (
+                  <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
+                    Create the first post!
+                  </Link>
+                )}
               </div>
             ) : (
               posts.map((post) => (
-                <div key={post.id} className="post">
-                  <div className="post-header">
-                    <div 
-                      className="post-avatar" 
-                      style={{ 
-                        backgroundImage: `url(${post.avatar || user?.photoURL || 'https://via.placeholder.com/150'})`, 
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center' 
-                      }}
-                    ></div>
-                    <span className="post-username">{post.username || user?.displayName || user?.email?.split('@')[0]}</span>
-                    <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleString()}</span>
-                  </div>
-                  <div className="post-image">
-                    {post.image ? (
-                      <img 
-                        src={post.image} 
-                        alt="Post" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                        onError={(e) => {
-                          console.error('Image failed to load for post:', post.id);
-                          e.target.src = 'https://via.placeholder.com/400x400?text=Image+Failed+to+Load';
-                        }}
-                      />
-                    ) : (
-                      <div style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        backgroundColor: '#222', 
-                        color: '#999' 
-                      }}>
-                        Loading image...
-                      </div>
-                    )}
-                  </div>
-                  <div className="post-footer">
-                    <div className="post-actions-row">
-                      <div className="post-actions">
-                        <span className="material-symbols-outlined">favorite</span>
-                        <span className="material-symbols-outlined">chat_bubble</span>
-                        <span className="material-symbols-outlined">send</span>
-                      </div>
-                      <div className="post-bookmark">
-                        <span className="material-symbols-outlined">bookmark</span>
-                      </div>
-                    </div>
-                    <div className="post-likes">{post.likes?.length || 0} likes</div>
-                    <div className="post-caption">
-                      <span className="post-username">{post.username || user?.displayName || user?.email?.split('@')[0]}</span> {post.caption}
-                    </div>
-                    <input type="text" className="post-comment-input" placeholder="Add a comment..." />
-                  </div>
-                </div>
+                <PostComponent key={post.id} post={post} user={user} />
               ))
             )}
           </div>

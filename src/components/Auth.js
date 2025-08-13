@@ -10,34 +10,159 @@ const Auth = ({ setUser }) => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Profile picture should be less than 5MB');
+        return;
+      }
+
+      setProfilePicture(file);
+      setProfilePicturePreview(URL.createObjectURL(file));
+      setError('');
+    }
+  };
+
+  // Compress and convert image to base64
+  const compressAndConvertImage = (file, maxWidth = 400, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions maintaining aspect ratio
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxWidth) {
+            width = (width * maxWidth) / height;
+            height = maxWidth;
+          }
+        }
+        
+        // Set canvas dimensions
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with compression
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        
+        // Check if still too large (Firestore limit is ~1MB for a field)
+        if (compressedBase64.length > 800000) { // 800KB safety margin
+          // Try with more compression
+          const moreCompressed = canvas.toDataURL('image/jpeg', 0.5);
+          if (moreCompressed.length > 800000) {
+            // Last resort - very small image
+            canvas.width = 200;
+            canvas.height = 200;
+            ctx.drawImage(img, 0, 0, 200, 200);
+            resolve(canvas.toDataURL('image/jpeg', 0.4));
+          } else {
+            resolve(moreCompressed);
+          }
+        } else {
+          resolve(compressedBase64);
+        }
+      };
+      
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+
     try {
       if (isLogin) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         setUser(userCredential.user);
         navigate('/');
       } else {
+        // Validation for signup
+        if (!displayName.trim()) {
+          setError('Username is required');
+          setLoading(false);
+          return;
+        }
+
+        if (!profilePicture) {
+          setError('Please select a profile picture');
+          setLoading(false);
+          return;
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName });
+        
+        // Compress and convert profile picture to base64
+        const profilePictureBase64 = await compressAndConvertImage(profilePicture);
+        console.log('Compressed image size:', profilePictureBase64.length, 'bytes');
+        
+        // Only update displayName in Firebase Auth, NOT photoURL
+        await updateProfile(userCredential.user, { 
+          displayName: displayName.trim()
+          // No photoURL - Firebase Auth can't handle large base64 strings
+        });
+
+        // Save ALL user data (including compressed photo) to Firestore
         await setDoc(doc(db, 'users', userCredential.user.uid), {
           email,
-          displayName,
-          bio,
-          photoURL: 'https://via.placeholder.com/150',
+          displayName: displayName.trim(),
+          bio: bio.trim(),
+          photoURL: profilePictureBase64, // Store compressed base64 image in Firestore
           followers: 0,
           following: 0,
+          createdAt: new Date().toISOString()
         });
+
         setUser(userCredential.user);
         navigate('/');
       }
     } catch (err) {
-      setError(err.message);
+      console.error('Auth error:', err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Email is already registered. Please use a different email or try logging in.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters long.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email. Please sign up first.');
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Please try again.');
+      } else if (err.message && err.message.includes('photoURL')) {
+        setError('Profile picture is too large. Please try a smaller image.');
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +175,15 @@ const Auth = ({ setUser }) => {
     // Add your footer link navigation logic here
     console.log(`${linkName} clicked`);
   };
+
+  // Cleanup profile picture preview on component unmount
+  React.useEffect(() => {
+    return () => {
+      if (profilePicturePreview) {
+        URL.revokeObjectURL(profilePicturePreview);
+      }
+    };
+  }, [profilePicturePreview]);
 
   return (
     <div className="auth-container">
@@ -68,6 +202,7 @@ const Auth = ({ setUser }) => {
                 placeholder="Phone number, username, or email"
                 className="form-input"
                 required
+                disabled={loading}
               />
               <input
                 type="password"
@@ -76,9 +211,10 @@ const Auth = ({ setUser }) => {
                 placeholder="Password"
                 className="form-input"
                 required
+                disabled={loading}
               />
-              <button type="submit" className="auth-button">
-                Log In
+              <button type="submit" className="auth-button" disabled={loading}>
+                {loading ? 'Logging in...' : 'Log In'}
               </button>
             </>
           ) : (
@@ -90,15 +226,82 @@ const Auth = ({ setUser }) => {
                 placeholder="Username"
                 className="form-input"
                 required
+                disabled={loading}
+                maxLength={30}
               />
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Bio"
+                placeholder="Bio (optional)"
                 className="form-input"
                 rows="3"
-                required
+                disabled={loading}
+                maxLength={150}
               />
+              
+              {/* Profile Picture Upload */}
+              <div style={{ marginBottom: '12px' }}>
+                <label 
+                  htmlFor="profile-picture" 
+                  style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  Profile Picture *
+                </label>
+                <div
+                  onClick={() => document.getElementById('profile-picture').click()}
+                  style={{
+                    width: '100%',
+                    height: profilePicturePreview ? '120px' : '80px',
+                    border: '2px dashed #333',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    backgroundColor: '#262626',
+                    transition: 'border-color 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.borderColor = '#555'}
+                  onMouseLeave={(e) => e.target.style.borderColor = '#333'}
+                >
+                  {profilePicturePreview ? (
+                    <img 
+                      src={profilePicturePreview} 
+                      alt="Profile preview" 
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
+                    <>
+                      <div style={{ fontSize: '32px', marginBottom: '8px' }}>📷</div>
+                      <p style={{ margin: 0, color: '#999', fontSize: '12px', textAlign: 'center' }}>
+                        Click to upload profile picture<br/>
+                        <small style={{ color: '#666' }}>(Image will be automatically optimized)</small>
+                      </p>
+                    </>
+                  )}
+                </div>
+                <input
+                  id="profile-picture"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureChange}
+                  style={{ display: 'none' }}
+                  disabled={loading}
+                />
+              </div>
+
               <input
                 type="email"
                 value={email}
@@ -106,6 +309,7 @@ const Auth = ({ setUser }) => {
                 placeholder="Email"
                 className="form-input"
                 required
+                disabled={loading}
               />
               <input
                 type="password"
@@ -114,25 +318,37 @@ const Auth = ({ setUser }) => {
                 placeholder="Password"
                 className="form-input"
                 required
+                disabled={loading}
+                minLength={6}
               />
-              <button type="submit" className="auth-button">
-                Sign Up
+              <button type="submit" className="auth-button" disabled={loading}>
+                {loading ? 'Creating Account...' : 'Sign Up'}
               </button>
             </>
           )}
         </form>
+        
         <div className="divider">OR</div>
-        <button className="facebook-login">Log in with Facebook</button>
-        <button onClick={handleForgotPassword} className="forgot-password">
+        <button className="facebook-login" disabled={loading}>Log in with Facebook</button>
+        <button onClick={handleForgotPassword} className="forgot-password" disabled={loading}>
           Forgot password?
         </button>
+        
         {error && <p className="error-message">{error}</p>}
+        
         <button
-          onClick={() => setIsLogin(!isLogin)}
+          onClick={() => {
+            setIsLogin(!isLogin);
+            setError('');
+            setProfilePicture(null);
+            setProfilePicturePreview(null);
+          }}
           className="toggle-link"
+          disabled={loading}
         >
           {isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"}
         </button>
+        
         <div className="footer-links">
           <button onClick={() => handleFooterLinkClick('Meta')}>Meta</button>
           <button onClick={() => handleFooterLinkClick('About')}>About</button>

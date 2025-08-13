@@ -90,6 +90,25 @@
   padding-left: 16px;
 }
 
+/* Profile picture container styles */
+.sidebar-profile-container {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #333;
+}
+
+.sidebar-profile-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .notification-badge {
   background-color: #ed4956;
   color: #ffffff;
@@ -146,5 +165,9 @@ a.sidebar-item:visited {
     margin-left: 0;
     position: absolute;
     right: 8px;
+  }
+  .sidebar-profile-container {
+    width: 24px;
+    height: 24px;
   }
 }

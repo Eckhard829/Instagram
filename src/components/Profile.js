@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// eslint-disable-next-line no-unused-vars
 import { Link } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, doc, orderBy } from 'firebase/firestore';
@@ -114,40 +113,39 @@ const Profile = ({ user }) => {
               <div className="profile-avatar">
                 <img src={photoURL} alt="Profile" />
               </div>
-              <div className="profile-info">
-                <h2 className="profile-username">{displayName}</h2>
+              <div className="profile-info-section">
+                <div className="profile-top-row">
+                  <h2 className="profile-username">{displayName}</h2>
+                  <button className="profile-edit-button">Edit profile</button>
+                </div>
+                <div className="profile-stats">
+                  <div className="profile-stat">
+                    <span className="profile-stat-number">{posts.length}</span>
+                    <span className="profile-stat-label">posts</span>
+                  </div>
+                  <div className="profile-stat">
+                    <span className="profile-stat-number">{followers}</span>
+                    <span className="profile-stat-label">followers</span>
+                  </div>
+                  <div className="profile-stat">
+                    <span className="profile-stat-number">{following}</span>
+                    <span className="profile-stat-label">following</span>
+                  </div>
+                </div>
+                {bio && (
+                  <div className="profile-bio">{bio}</div>
+                )}
               </div>
             </div>
-            <div className="profile-stats">
-              <span>{posts.length} posts</span>
-              <span>{followers} followers</span>
-              <span>{following} following</span>
-            </div>
-            <div className="profile-bio">{bio || 'No bio yet'}</div>
             <div className="profile-posts">
               {loading ? (
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center', 
-                  height: '200px', 
-                  color: '#fff',
-                  gridColumn: '1 / -1'
-                }}>
+                <div className="profile-loading">
                   Loading posts...
                 </div>
               ) : posts.length === 0 ? (
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center', 
-                  height: '200px', 
-                  color: '#999',
-                  gridColumn: '1 / -1',
-                  flexDirection: 'column'
-                }}>
+                <div className="profile-no-posts">
                   <p>No posts yet</p>
-                  <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
+                  <Link to="/create">
                     Create your first post!
                   </Link>
                 </div>

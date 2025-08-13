@@ -14,18 +14,38 @@ import rightmenu5 from '../assets/rightmenu5.jpg';
 
 const RightMenu = ({ user }) => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState({ displayName: '' });
+  const [userData, setUserData] = useState({ 
+    displayName: '', 
+    photoURL: 'https://via.placeholder.com/150'
+  });
 
   useEffect(() => {
     if (user?.uid) {
       const unsubscribe = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
         if (docSnap.exists()) {
-          setUserData(docSnap.data());
+          const data = docSnap.data();
+          setUserData({
+            displayName: data.displayName || user.email?.split('@')[0] || 'Anonymous',
+            photoURL: data.photoURL || user.photoURL || 'https://via.placeholder.com/150'
+          });
+        } else {
+          // Fallback to auth user data if no Firestore document
+          setUserData({
+            displayName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
+            photoURL: user.photoURL || 'https://via.placeholder.com/150'
+          });
         }
+      }, (error) => {
+        console.error('Error fetching user data:', error);
+        // Fallback to auth user data on error
+        setUserData({
+          displayName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
+          photoURL: user.photoURL || 'https://via.placeholder.com/150'
+        });
       });
       return () => unsubscribe();
     }
-  }, [user?.uid]);
+  }, [user?.uid, user?.email, user?.displayName, user?.photoURL]);
 
   const handleLogout = async () => {
     try {
@@ -59,20 +79,37 @@ const RightMenu = ({ user }) => {
     }
   ];
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="right-menu">
       <div className="profile-section">
+        <div className="profile-avatar">
+          <img 
+            src={userData.photoURL} 
+            alt="Your profile" 
+            onError={(e) => {
+              console.error('Profile image failed to load');
+              e.target.src = 'https://via.placeholder.com/150';
+            }}
+          />
+        </div>
         <div className="profile-info">
-          <span className="profile-username">{userData.displayName || user?.email.split('@')[0]}</span>
+          <span className="profile-username">{userData.displayName}</span>
+          <span className="profile-name">{user.email}</span>
         </div>
         <button className="switch-button" onClick={handleLogout}>Switch</button>
       </div>
+      
       <div className="suggested-header">
         <h3>Suggested for you</h3>
         <button className="see-all" onClick={() => {/* Add logic for seeing all suggestions */}}>
           See all
         </button>
       </div>
+      
       <ul className="suggested-accounts">
         {suggestedAccounts.map((account, index) => (
           <li key={index}>
@@ -84,6 +121,7 @@ const RightMenu = ({ user }) => {
           </li>
         ))}
       </ul>
+      
       <div className="footer-links">
         <p>
           <a href="https://about.instagram.com">About</a> • 

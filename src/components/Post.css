@@ -9,7 +9,6 @@
 
 .post {
   width: 470px;
-  height: 751px;
   background-color: transparent;
   border-radius: 0;
   padding: 10px;
@@ -55,8 +54,9 @@
 }
 
 .post-username {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
+  color: #fff;
 }
 
 .post-time {
@@ -71,6 +71,7 @@
   background-color: #222;
   border-radius: 8px;
   box-sizing: border-box;
+  margin-bottom: 12px;
 }
 
 .post-image img {
@@ -82,48 +83,159 @@
 
 .post-footer {
   width: 470px;
-  height: 118px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
+.post-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .post-actions {
   display: flex;
   color: #999;
-  margin-bottom: 8px;
 }
 
 .post-actions span {
-  margin-right: 15px;
+  margin-right: 16px;
   cursor: pointer;
+  font-size: 24px;
+  transition: color 0.2s ease;
 }
 
 .post-actions span:hover {
-  color: #fff;
+  color: #999;
+  opacity: 0.7;
+}
+
+.post-bookmark {
+  color: #999;
+}
+
+.post-bookmark span {
+  cursor: pointer;
+  font-size: 24px;
+  transition: color 0.2s ease;
+}
+
+.post-bookmark span:hover {
+  opacity: 0.7;
 }
 
 .post-likes {
   font-size: 14px;
-  color: #ccc;
+  font-weight: 600;
+  color: #fff;
   margin-bottom: 8px;
 }
 
-.post-caption {
+/* Updated comments section with proper 4px spacing */
+.post-comments-section {
+  margin-bottom: 5px; /* Changed from 12px to 5px to create proper spacing before comment input */
+}
+
+.view-all-comments {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
   font-size: 14px;
+  padding: 0;
+  margin-bottom: 4px; /* Changed to 4px */
+  display: block;
+}
+
+.view-all-comments:hover {
   color: #ccc;
-  margin-bottom: 8px;
+}
+
+.post-comment {
+  display: flex;
+  align-items: flex-start;
+  font-size: 14px;
+  margin-bottom: 4px; /* Changed from 6px to 4px */
+  line-height: 18px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Ensure caption has proper spacing from likes */
+.post-comment:first-child {
+  margin-top: 4px; /* Add 4px gap between likes and caption */
+}
+
+.comment-username {
+  font-weight: 600;
+  color: #fff;
+  margin-right: 3px; /* Changed from 8px to 3px for exact spacing */
+  flex-shrink: 0;
+}
+
+.comment-text {
+  color: #fff;
+  flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  margin-right: 8px;
+  min-width: 0; /* Allows text to shrink */
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #999;
+  flex-shrink: 0;
+  margin-left: 8px;
+  align-self: flex-start;
+}
+
+/* Ensure caption (first comment) looks the same as regular comments */
+.post-comment:first-child .comment-username {
+  font-weight: 600;
+}
+
+.comment-form {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-top: 5px; /* Add 5px spacing above comment input */
 }
 
 .post-comment-input {
   width: 100%;
-  padding: 8px;
-  background-color: #222;
+  padding: 12px 60px 12px 0;
+  background-color: transparent;
   border: none;
   color: #fff;
   font-size: 14px;
-  border-radius: 4px;
+  border-top: 1px solid #333;
+  padding-top: 16px;
   box-sizing: border-box;
+  outline: none;
+}
+
+.post-comment-input::placeholder {
+  color: #999;
+}
+
+.post-comment-button {
+  position: absolute;
+  right: 0;
+  top: 16px;
+  background: none;
+  border: none;
+  color: #0095f6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.post-comment-button:hover {
+  color: #fff;
 }
 
 @media (max-width: 768px) {
@@ -171,6 +283,10 @@
     height: auto;
   }
   .post-comment-input {
-    padding: 6px;
+    padding: 6px 50px 6px 0;
+    padding-top: 12px;
+  }
+  .post-comment-button {
+    top: 12px;
   }
 }
