@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, query, where, onSnapshot, doc, orderBy } from 'firebase/firestore';
 import './Profile.css';
 import Sidebar from './Sidebar';
+import EditProfileModal from './ProfileModal'; // Fixed import - changed from './EditProfileModal' to './ProfileModal'
 
 const Profile = ({ user }) => {
   const [posts, setPosts] = useState([]);
@@ -14,6 +15,7 @@ const Profile = ({ user }) => {
   const [photoURL, setPhotoURL] = useState(user?.photoURL || 'https://via.placeholder.com/150');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -99,6 +101,24 @@ const Profile = ({ user }) => {
     };
   }, [user]);
 
+  const handleEditProfileUpdate = () => {
+    // Force re-fetch of user data when profile is updated
+    if (user?.uid) {
+      const userRef = doc(db, 'users', user.uid);
+      const unsubscribeUser = onSnapshot(userRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setDisplayName(data.displayName || user.email?.split('@')[0] || 'Anonymous');
+          setBio(data.bio || '');
+          setFollowers(data.followers || 0);
+          setFollowing(data.following || 0);
+          setPhotoURL(data.photoURL || 'https://via.placeholder.com/150');
+        }
+      });
+      return () => unsubscribeUser();
+    }
+  };
+
   if (!user) {
     return <div className="profile-page">Please log in to view your profile.</div>;
   }
@@ -116,7 +136,12 @@ const Profile = ({ user }) => {
               <div className="profile-info-section">
                 <div className="profile-top-row">
                   <h2 className="profile-username">{displayName}</h2>
-                  <button className="profile-edit-button">Edit profile</button>
+                  <button 
+                    onClick={() => setIsEditModalOpen(true)} 
+                    className="profile-edit-button"
+                  >
+                    Edit profile
+                  </button>
                 </div>
                 <div className="profile-stats">
                   <div className="profile-stat">
@@ -190,6 +215,13 @@ const Profile = ({ user }) => {
                 <span>{following} following</span>
               </div>
               <div className="profile-bio">{bio || 'No bio yet'}</div>
+              <button 
+                onClick={() => setIsEditModalOpen(true)} 
+                className="profile-edit-button" 
+                style={{ marginTop: '10px', display: 'inline-block' }}
+              >
+                Edit profile
+              </button>
             </div>
           </div>
           <div className="post-section">
@@ -287,6 +319,14 @@ const Profile = ({ user }) => {
           </div>
         </div>
       )}
+      
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        user={user}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onUpdate={handleEditProfileUpdate}
+      />
     </>
   );
 };
