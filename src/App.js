@@ -183,7 +183,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showDebug] = useState(false); // Debug component disabled
+  const [showDebug, setShowDebug] = useState(false); // Toggle for debug component
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -212,16 +212,6 @@ function App() {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribePosts = onSnapshot(q, async (snapshot) => {
       console.log('Fetching posts, found:', snapshot.docs.length);
-      
-      // Set loading to false immediately, regardless of posts
-      setLoading(false);
-      
-      if (snapshot.docs.length === 0) {
-        console.log('No posts found in database');
-        setPosts([]);
-        return;
-      }
-      
       const postsData = [];
       
       for (const docSnap of snapshot.docs) {
@@ -273,10 +263,10 @@ function App() {
       
       console.log('Processed posts:', postsData.length);
       setPosts(postsData);
+      setLoading(false);
     }, (error) => {
       console.error('Error fetching posts:', error);
       setLoading(false);
-      setPosts([]); // Set empty array on error
     });
 
     return () => {
@@ -304,6 +294,14 @@ function App() {
         <div className="mobile-top-icons">
           <span className="material-symbols-outlined">favorite</span>
           <span className="material-symbols-outlined">send</span>
+          {/* Debug toggle button */}
+          <span 
+            className="material-symbols-outlined"
+            onClick={() => setShowDebug(!showDebug)}
+            style={{ cursor: 'pointer', opacity: showDebug ? 1 : 0.5 }}
+          >
+            bug_report
+          </span>
         </div>
       </div>
       <div className="account-circles">
