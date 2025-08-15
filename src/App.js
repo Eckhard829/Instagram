@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { auth } from './firebase';
 import { db } from './firebase';
-import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, getDocs } from 'firebase/firestore';
 import Auth from './components/Auth';
 import CreatePost from './components/CreatePost';
 import Profile from './components/Profile';
@@ -21,10 +21,169 @@ import image6 from './assets/6.jpg';
 import image7 from './assets/7.jpg';
 import image8 from './assets/8.jpg';
 
+// Firebase Debug Component - Add this directly in App.js for quick testing
+const FirebaseDebugComponent = () => {
+  const [debugInfo, setDebugInfo] = useState({
+    authState: 'checking...',
+    dbConnection: 'checking...',
+    postsCount: 'checking...',
+    samplePost: null,
+    errors: []
+  });
+
+  useEffect(() => {
+    const runDiagnostics = async () => {
+      const errors = [];
+      let authState = 'Not authenticated';
+      let dbConnection = 'Failed';
+      let postsCount = 0;
+      let samplePost = null;
+
+      try {
+        // Check auth state
+        const user = auth.currentUser;
+        if (user) {
+          authState = `Authenticated: ${user.email}`;
+        } else {
+          authState = 'Not authenticated';
+        }
+
+        // Check database connection
+        try {
+          const postsRef = collection(db, 'posts');
+          const snapshot = await getDocs(postsRef);
+          
+          dbConnection = 'Connected ✅';
+          postsCount = snapshot.docs.length;
+          
+          if (snapshot.docs.length > 0) {
+            const firstPost = snapshot.docs[0];
+            samplePost = {
+              id: firstPost.id,
+              ...firstPost.data()
+            };
+            
+            // Check if post has image chunks
+            if (samplePost.imageChunks && samplePost.imageChunks > 0) {
+              try {
+                const chunksRef = collection(db, 'posts', firstPost.id, 'imageChunks');
+                const chunksSnapshot = await getDocs(chunksRef);
+                samplePost.actualChunks = chunksSnapshot.docs.length;
+                samplePost.chunkSample = chunksSnapshot.docs[0]?.data();
+              } catch (chunkError) {
+                errors.push(`Chunk error: ${chunkError.message}`);
+              }
+            }
+          }
+          
+        } catch (dbError) {
+          dbConnection = `Failed: ${dbError.code}`;
+          errors.push(`DB: ${dbError.message}`);
+        }
+
+      } catch (generalError) {
+        errors.push(`General: ${generalError.message}`);
+      }
+
+      setDebugInfo({
+        authState,
+        dbConnection,
+        postsCount,
+        samplePost,
+        errors
+      });
+    };
+
+    // Run diagnostics initially
+    runDiagnostics();
+
+    // Re-run when auth state changes
+    const unsubscribe = auth.onAuthStateChanged(() => {
+      runDiagnostics();
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: '10px',
+      right: '10px',
+      background: 'rgba(0,0,0,0.95)',
+      color: '#fff',
+      padding: '15px',
+      borderRadius: '8px',
+      fontSize: '11px',
+      maxWidth: '280px',
+      zIndex: 9999,
+      border: '1px solid #333',
+      fontFamily: 'monospace'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <h4 style={{ margin: 0, color: '#0095f6', fontSize: '12px' }}>🔍 Firebase Debug</h4>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            padding: '2px 6px',
+            backgroundColor: '#333',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '3px',
+            cursor: 'pointer',
+            fontSize: '9px'
+          }}
+        >
+          Refresh
+        </button>
+      </div>
+      
+      <div style={{ marginBottom: '6px' }}>
+        <strong>Auth:</strong> <span style={{ color: debugInfo.authState.includes('✅') ? '#4CAF50' : '#999' }}>{debugInfo.authState}</span>
+      </div>
+      
+      <div style={{ marginBottom: '6px' }}>
+        <strong>Database:</strong> <span style={{ color: debugInfo.dbConnection.includes('✅') ? '#4CAF50' : '#f44336' }}>{debugInfo.dbConnection}</span>
+      </div>
+      
+      <div style={{ marginBottom: '6px' }}>
+        <strong>Posts:</strong> {debugInfo.postsCount}
+      </div>
+      
+      {debugInfo.samplePost && (
+        <div style={{ marginBottom: '6px', fontSize: '10px' }}>
+          <strong>Sample Post:</strong>
+          <div style={{ marginLeft: '8px', marginTop: '3px', color: '#ccc' }}>
+            <div>ID: {debugInfo.samplePost.id?.substring(0, 8)}...</div>
+            <div>User: {debugInfo.samplePost.username || 'N/A'}</div>
+            <div>Image: {debugInfo.samplePost.image ? '✅' : '❌'}</div>
+            <div>Chunks: {debugInfo.samplePost.imageChunks || 0}</div>
+            {debugInfo.samplePost.actualChunks && (
+              <div style={{ color: '#4CAF50' }}>Loaded: {debugInfo.samplePost.actualChunks}</div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {debugInfo.errors.length > 0 && (
+        <div style={{ marginTop: '8px', color: '#f44336', fontSize: '9px' }}>
+          <strong>Errors:</strong>
+          {debugInfo.errors.slice(0, 3).map((error, index) => (
+            <div key={index} style={{ marginLeft: '8px', marginTop: '2px' }}>
+              • {error.substring(0, 50)}...
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 function App() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDebug, setShowDebug] = useState(false); // Toggle for debug component
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -38,8 +197,8 @@ function App() {
             setUser((prevUser) => ({ 
               ...prevUser, 
               ...userData,
-              uid: user.uid, // Ensure UID is preserved
-              email: user.email // Ensure email is preserved
+              uid: user.uid,
+              email: user.email
             }));
           }
         });
@@ -50,7 +209,6 @@ function App() {
     });
 
     // Fetch ALL posts from Firestore (public feed)
-    // Remove any user-specific filtering to ensure all users see all posts
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribePosts = onSnapshot(q, async (snapshot) => {
       console.log('Fetching posts, found:', snapshot.docs.length);
@@ -76,7 +234,6 @@ function App() {
                   reject(error);
                 }
               );
-              // Clean up immediately after getting data
               setTimeout(() => unsubscribeChunks(), 100);
             });
             
@@ -86,7 +243,6 @@ function App() {
               chunks[chunkData.index] = chunkData.data;
             });
             
-            // Reassemble full image
             const fullImage = chunks.join('');
             postData.image = fullImage;
           } catch (error) {
@@ -120,20 +276,13 @@ function App() {
   }, []);
 
   const addPost = (newPost) => {
-    // Add new post to the beginning of the list
     setPosts(prevPosts => [newPost, ...prevPosts]);
   };
 
   // Use imported local images for stories
   const accountImages = [
-    image1,
-    image2,
-    image3,
-    image4,
-    image5,
-    image6,
-    image7,
-    image8
+    image1, image2, image3, image4,
+    image5, image6, image7, image8
   ];
 
   const MobileHomePage = () => (
@@ -145,6 +294,14 @@ function App() {
         <div className="mobile-top-icons">
           <span className="material-symbols-outlined">favorite</span>
           <span className="material-symbols-outlined">send</span>
+          {/* Debug toggle button */}
+          <span 
+            className="material-symbols-outlined"
+            onClick={() => setShowDebug(!showDebug)}
+            style={{ cursor: 'pointer', opacity: showDebug ? 1 : 0.5 }}
+          >
+            bug_report
+          </span>
         </div>
       </div>
       <div className="account-circles">
@@ -156,24 +313,11 @@ function App() {
       </div>
       <div className="post-section">
         {loading ? (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            height: '200px', 
-            color: '#fff' 
-          }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px', color: '#fff' }}>
             Loading posts...
           </div>
         ) : posts.length === 0 ? (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            height: '200px', 
-            color: '#999',
-            flexDirection: 'column'
-          }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px', color: '#999', flexDirection: 'column' }}>
             <p>No posts yet</p>
             {user && (
               <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
@@ -225,24 +369,11 @@ function App() {
           </div>
           <div className="post-section">
             {loading ? (
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                height: '200px', 
-                color: '#fff' 
-              }}>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px', color: '#fff' }}>
                 Loading posts...
               </div>
             ) : posts.length === 0 ? (
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                height: '200px', 
-                color: '#999',
-                flexDirection: 'column'
-              }}>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px', color: '#999', flexDirection: 'column' }}>
                 <p>No posts yet</p>
                 {user && (
                   <Link to="/create" style={{ color: '#0095f6', textDecoration: 'none' }}>
@@ -265,6 +396,9 @@ function App() {
   return (
     <Router>
       <div className="app">
+        {/* Show debug component when enabled */}
+        {showDebug && <FirebaseDebugComponent />}
+        
         <Routes>
           <Route path="/auth" element={<Auth setUser={setUser} />} />
           <Route
@@ -272,7 +406,12 @@ function App() {
             element={
               user ? (
                 <Routes>
-                  <Route path="/" element={<div className="responsive-container"><div className="mobile-view"><MobileHomePage /></div><div className="desktop-view"><DesktopHomePage /></div></div>} />
+                  <Route path="/" element={
+                    <div className="responsive-container">
+                      <div className="mobile-view"><MobileHomePage /></div>
+                      <div className="desktop-view"><DesktopHomePage /></div>
+                    </div>
+                  } />
                   <Route path="/create" element={<CreatePost user={user} onAddPost={addPost} />} />
                   <Route path="/profile" element={<Profile user={user} />} />
                 </Routes>
