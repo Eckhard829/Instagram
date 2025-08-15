@@ -5,7 +5,7 @@
   top: 0;
   left: 0;
   width: 311px;
-  height: auto;
+  height: 100vh;
   background-color: #000000;
   color: #ffffff;
   padding: 20px 0;
@@ -14,13 +14,15 @@
   flex-direction: column;
   border: 0px solid transparent;
   margin: 0;
+  z-index: 100;
+  overflow-y: auto;
 }
 
 .sidebar::after {
   content: '';
   position: absolute;
   top: 0;
-  left: 311px;
+  right: 0;
   width: 1px;
   height: 100vh;
   background-color: #333;
@@ -42,9 +44,9 @@
 
 .sidebar-main-nav {
   width: 220px;
-  height: 657px;
   padding-left: 12px;
   box-sizing: border-box;
+  flex-grow: 1;
 }
 
 .sidebar-item {
@@ -134,11 +136,10 @@ a.sidebar-item:visited {
 @media (max-width: 768px) {
   .sidebar {
     width: 72px;
-    height: auto;
     padding: 16px 0;
   }
   .sidebar::after {
-    left: 72px;
+    right: 0;
   }
   .sidebar-logo {
     padding: 0 0 0 8px;
@@ -149,7 +150,6 @@ a.sidebar-item:visited {
   }
   .sidebar-main-nav {
     width: 72px;
-    height: auto;
     padding-left: 8px;
   }
   .sidebar-item {

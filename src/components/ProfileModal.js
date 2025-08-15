@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { auth, db } from '../firebase';
-import './ProfileModal.css'; // Fixed import - changed from './EditProfileModal.css' to './ProfileModal.css'
+import './ProfileModal.css';
 
 const EditProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
   const [displayName, setDisplayName] = useState('');
@@ -54,9 +54,9 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
         return;
       }
       
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Profile picture should be less than 5MB');
+      // Increased file size limit to 20MB
+      if (file.size > 20 * 1024 * 1024) {
+        setError('Profile picture should be less than 20MB');
         return;
       }
 
@@ -66,8 +66,8 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
     }
   };
 
-  // Compress and convert image to base64
-  const compressAndConvertImage = (file, maxWidth = 400, quality = 0.8) => {
+  // Enhanced compression with multiple quality levels
+  const compressAndConvertImage = (file, maxWidth = 600, initialQuality = 0.9) => {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -93,28 +93,24 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
         canvas.width = width;
         canvas.height = height;
         
-        // Draw and compress
+        // Draw image
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Convert to base64 with compression
-        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-        
-        // Check if still too large (Firestore limit is ~1MB for a field)
-        if (compressedBase64.length > 800000) { // 800KB safety margin
-          // Try with more compression
-          const moreCompressed = canvas.toDataURL('image/jpeg', 0.5);
-          if (moreCompressed.length > 800000) {
-            // Last resort - very small image
-            canvas.width = 200;
-            canvas.height = 200;
-            ctx.drawImage(img, 0, 0, 200, 200);
-            resolve(canvas.toDataURL('image/jpeg', 0.4));
-          } else {
-            resolve(moreCompressed);
+        // Try different compression levels until we get under 700KB for Firestore
+        const tryCompress = (quality) => {
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          
+          if (compressedBase64.length <= 700000 || quality <= 0.1) {
+            return compressedBase64;
           }
-        } else {
-          resolve(compressedBase64);
-        }
+          
+          // If still too large, try with lower quality
+          return tryCompress(quality - 0.1);
+        };
+        
+        const result = tryCompress(initialQuality);
+        console.log(`Compressed image to ${Math.round(result.length / 1024)}KB`);
+        resolve(result);
       };
       
       img.onerror = reject;
@@ -230,6 +226,9 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
                 >
                   Change profile photo
                 </button>
+                <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                  Up to 20MB - will be optimized
+                </div>
               </div>
               <input
                 id="photo-upload"

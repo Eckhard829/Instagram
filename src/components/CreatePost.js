@@ -62,9 +62,9 @@ const CreatePost = ({ user, onAddPost }) => {
         return;
       }
       
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setError('Image size should be less than 10MB');
+      // Increased file size limit to 50MB for posts
+      if (file.size > 50 * 1024 * 1024) {
+        setError('Image size should be less than 50MB');
         return;
       }
 
@@ -74,13 +74,41 @@ const CreatePost = ({ user, onAddPost }) => {
     }
   };
 
-  // Convert image to base64 and split into chunks
+  // Convert image to base64 and split into chunks with improved compression
   const processImageInChunks = (file) => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const base64 = reader.result;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate optimal dimensions - maintain aspect ratio but limit size
+        let { width, height } = img;
+        const maxDimension = 1920; // Maximum width or height
+        
+        if (width > height) {
+          if (width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+        
+        // Set canvas dimensions
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw image
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to base64 with good compression
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        console.log(`Compressed image from ${Math.round(file.size / 1024)}KB to ${Math.round(base64.length * 0.75 / 1024)}KB`);
+        
         const chunkSize = 700000; // ~700KB per chunk (safe for Firestore)
         const chunks = [];
         
@@ -94,7 +122,9 @@ const CreatePost = ({ user, onAddPost }) => {
           originalSize: base64.length
         });
       };
-      reader.onerror = error => reject(error);
+      
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
     });
   };
 
@@ -253,17 +283,6 @@ const CreatePost = ({ user, onAddPost }) => {
           User: {userData.username} | UID: {user.uid?.slice(0, 8)}...
         </div>
         
-        <div style={{ 
-          backgroundColor: '#333', 
-          color: '#fff', 
-          padding: '8px', 
-          borderRadius: '4px',
-          marginBottom: '16px',
-          fontSize: '12px'
-        }}>
-          Large images will be automatically split into chunks for storage.
-        </div>
-        
         {error && (
           <div style={{ 
             color: '#ff0000', 
@@ -309,7 +328,10 @@ const CreatePost = ({ user, onAddPost }) => {
                 <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '8px' }}>
                   add_a_photo
                 </span>
-                <p style={{ margin: 0, color: '#ccc' }}>Click to upload an image</p>
+                <p style={{ margin: 0, color: '#ccc', textAlign: 'center' }}>
+                  Click to upload an image<br/>
+                  <small style={{ color: '#666' }}>(Up to 50MB - will be automatically optimized)</small>
+                </p>
               </>
             )}
           </div>

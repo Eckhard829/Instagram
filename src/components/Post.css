@@ -4,7 +4,16 @@
   flex-direction: column;
   align-items: center;
   width: 630px;
-  overflow-y: hidden;
+  height: calc(100vh - 40px); /* Full viewport height minus some padding */
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.post-section::-webkit-scrollbar {
+  display: none; /* WebKit browsers (Chrome, Safari, Edge) */
 }
 
 .post {
@@ -14,11 +23,13 @@
   padding: 10px;
   padding-bottom: 16px;
   border-bottom: 1px solid #333;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 1;
+  flex-shrink: 0; /* Prevent posts from shrinking */
 }
 
 .post:after {
@@ -43,6 +54,8 @@
   padding-left: 4px;
   padding-bottom: 12px;
   box-sizing: border-box;
+  position: relative;
+  z-index: 2;
 }
 
 .post-avatar {
@@ -51,6 +64,7 @@
   background-color: #444;
   border-radius: 50%;
   margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .post-username {
@@ -72,6 +86,9 @@
   border-radius: 8px;
   box-sizing: border-box;
   margin-bottom: 12px;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0; /* Prevent image from shrinking */
 }
 
 .post-image img {
@@ -86,6 +103,9 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
 .post-actions-row {
@@ -133,9 +153,10 @@
   margin-bottom: 8px;
 }
 
-/* Updated comments section with proper 4px spacing */
 .post-comments-section {
-  margin-bottom: 5px; /* Changed from 12px to 5px to create proper spacing before comment input */
+  margin-bottom: 0px;
+  position: relative;
+  z-index: 3;
 }
 
 .view-all-comments {
@@ -145,7 +166,7 @@
   cursor: pointer;
   font-size: 14px;
   padding: 0;
-  margin-bottom: 4px; /* Changed to 4px */
+  margin-bottom: 4px;
   display: block;
 }
 
@@ -157,21 +178,20 @@
   display: flex;
   align-items: flex-start;
   font-size: 14px;
-  margin-bottom: 4px; /* Changed from 6px to 4px */
+  margin-bottom: 4px;
   line-height: 18px;
   flex-wrap: wrap;
   width: 100%;
 }
 
-/* Ensure caption has proper spacing from likes */
 .post-comment:first-child {
-  margin-top: 4px; /* Add 4px gap between likes and caption */
+  margin-top: 4px;
 }
 
 .comment-username {
   font-weight: 600;
   color: #fff;
-  margin-right: 3px; /* Changed from 8px to 3px for exact spacing */
+  margin-right: 3px;
   flex-shrink: 0;
 }
 
@@ -181,7 +201,7 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin-right: 8px;
-  min-width: 0; /* Allows text to shrink */
+  min-width: 0;
 }
 
 .comment-time {
@@ -192,7 +212,6 @@
   align-self: flex-start;
 }
 
-/* Ensure caption (first comment) looks the same as regular comments */
 .post-comment:first-child .comment-username {
   font-weight: 600;
 }
@@ -201,7 +220,10 @@
   display: flex;
   align-items: center;
   position: relative;
-  margin-top: 5px; /* Add 5px spacing above comment input */
+  margin-top: 5px;
+  margin-bottom: 0px;
+  z-index: 10;
+  background-color: #000;
 }
 
 .post-comment-input {
@@ -215,10 +237,16 @@
   padding-top: 16px;
   box-sizing: border-box;
   outline: none;
+  position: relative;
+  z-index: 11;
 }
 
 .post-comment-input::placeholder {
   color: #999;
+}
+
+.post-comment-input:focus {
+  background-color: #000;
 }
 
 .post-comment-button {
@@ -232,18 +260,66 @@
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+  z-index: 12;
 }
 
 .post-comment-button:hover {
   color: #fff;
 }
 
+/* Loading and empty states */
+.post-section .loading-container,
+.post-section .empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #fff;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  width: 100%;
+}
+
+.post-section .loading-container {
+  color: #fff;
+}
+
+.post-section .empty-container {
+  color: #999;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #333;
+  border-top: 4px solid #0095f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @media (max-width: 768px) {
   .post-section {
     align-items: center;
     width: 100%;
-    overflow-y: hidden;
+    height: calc(100vh - 50px - 96px - 50px); /* Mobile: subtract top bar, stories, bottom nav */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
   }
+  
+  .post-section::-webkit-scrollbar {
+    display: none; /* WebKit browsers (Chrome, Safari, Edge) */
+  }
+  
   .post {
     width: 100%;
     max-width: 470px;
@@ -251,42 +327,71 @@
     padding: 10px;
     padding-bottom: 16px;
     border-bottom: 1px solid #333;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
   }
+  
   .post:after {
     width: calc(100% - 20px);
     left: 10px;
   }
+  
   .post-header {
     width: 100%;
     max-width: 466px;
     height: auto;
     padding-left: 4px;
     padding-bottom: 12px;
+    z-index: 2;
   }
+  
   .post-avatar {
     width: 30px;
     height: 30px;
+    flex-shrink: 0;
   }
+  
   .post-image {
     width: 100%;
     max-width: 468px;
     height: 300px;
+    z-index: 2;
+    flex-shrink: 0;
   }
+  
   .post-image img {
     width: 100%;
     height: 100%;
   }
+  
   .post-footer {
     width: 100%;
     max-width: 470px;
     height: auto;
+    z-index: 3;
+    flex-shrink: 0;
   }
+  
+  .comment-form {
+    z-index: 10;
+    background-color: #000;
+  }
+  
   .post-comment-input {
     padding: 6px 50px 6px 0;
     padding-top: 12px;
+    z-index: 11;
+    background-color: transparent;
   }
+  
+  .post-comment-input:focus {
+    background-color: #000;
+  }
+  
   .post-comment-button {
     top: 12px;
+    z-index: 12;
   }
 }

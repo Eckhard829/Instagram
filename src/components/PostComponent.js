@@ -8,6 +8,7 @@ const PostComponent = ({ post, user }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [showAllComments, setShowAllComments] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   // Listen for real-time comments updates
   React.useEffect(() => {
@@ -41,35 +42,51 @@ const PostComponent = ({ post, user }) => {
       return;
     }
 
+    if (likeLoading) return; // Prevent double-clicking
+    setLikeLoading(true);
+
     try {
       const postRef = doc(db, 'posts', post.id);
+      
+      // Optimistically update UI
+      const newIsLiked = !isLiked;
+      setIsLiked(newIsLiked);
+      setLikesCount(prev => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
       
       if (isLiked) {
         // Unlike the post
         await updateDoc(postRef, {
           likes: arrayRemove(user.uid)
         });
-        setIsLiked(false);
-        setLikesCount(prev => Math.max(0, prev - 1));
       } else {
         // Like the post
         await updateDoc(postRef, {
           likes: arrayUnion(user.uid)
         });
-        setIsLiked(true);
-        setLikesCount(prev => prev + 1);
       }
     } catch (error) {
       console.error('Error updating like:', error);
+      
+      // Revert optimistic update on error
+      setIsLiked(!isLiked);
+      setLikesCount(prev => isLiked ? prev + 1 : Math.max(0, prev - 1));
+      
       // Provide more specific error handling
       if (error.code === 'permission-denied') {
-        console.log('User does not have permission to update this post');
+        console.log('Permission denied - checking security rules');
+        alert('Unable to like post. Please try refreshing the page.');
       } else if (error.code === 'not-found') {
         console.log('Post not found');
+        alert('This post no longer exists.');
+      } else if (error.code === 'unauthenticated') {
+        console.log('User not authenticated');
+        alert('Please log in again to like posts.');
       } else {
-        console.log('Network or server error');
+        console.log('Network or server error:', error.message);
+        alert('Network error. Please check your connection and try again.');
       }
-      // Don't show alert to user, just log the error
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -95,7 +112,12 @@ const PostComponent = ({ post, user }) => {
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
-      alert('Error adding comment. Please try again.');
+      
+      if (error.code === 'permission-denied') {
+        alert('Unable to add comment. Please try refreshing the page.');
+      } else {
+        alert('Error adding comment. Please try again.');
+      }
     }
   };
 
@@ -169,7 +191,8 @@ const PostComponent = ({ post, user }) => {
               onClick={handleLike}
               style={{ 
                 color: isLiked ? '#ff3040' : '#fff',
-                cursor: 'pointer'
+                cursor: likeLoading ? 'wait' : 'pointer',
+                opacity: likeLoading ? 0.6 : 1
               }}
             >
               {isLiked ? 'favorite' : 'favorite_border'}
