@@ -183,7 +183,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showDebug, setShowDebug] = useState(false); // Toggle for debug component
+  const [showDebug] = useState(false); // Debug component disabled
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
