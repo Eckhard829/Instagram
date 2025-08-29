@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc, collection, writeBatch } from "firebase/firestore";
 import { auth, db } from "../firebase";
@@ -6,6 +6,7 @@ import './CreatePost.css';
 
 const CreatePost = ({ user, onAddPost }) => {
   const navigate = useNavigate();
+  const isSubmittingRef = useRef(false); // Track submission state
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [caption, setCaption] = useState("");
@@ -52,6 +53,13 @@ const CreatePost = ({ user, onAddPost }) => {
 
     fetchUserData();
   }, [user]);
+
+  // Reset submission ref on unmount
+  useEffect(() => {
+    return () => {
+      isSubmittingRef.current = false;
+    };
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -130,6 +138,14 @@ const CreatePost = ({ user, onAddPost }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+    
+    // Prevent double submission
+    if (isSubmittingRef.current || uploading) {
+      console.log('Already submitting, ignoring duplicate request');
+      return;
+    }
+    
     setError("");
     
     // Debug authentication
@@ -150,6 +166,8 @@ const CreatePost = ({ user, onAddPost }) => {
       return;
     }
 
+    // Set submission flags
+    isSubmittingRef.current = true;
     setUploading(true);
 
     try {
@@ -205,8 +223,6 @@ const CreatePost = ({ user, onAddPost }) => {
         onAddPost({ ...post, image: fullImage });
       }
       
-      setUploading(false);
-      
       // Clear form
       setImage(null);
       setImagePreview(null);
@@ -237,6 +253,9 @@ const CreatePost = ({ user, onAddPost }) => {
       }
       
       setError(errorMessage);
+    } finally {
+      // Always reset submission flags
+      isSubmittingRef.current = false;
       setUploading(false);
     }
   };
@@ -374,7 +393,8 @@ const CreatePost = ({ user, onAddPost }) => {
               disabled={uploading || !image || !caption.trim()}
               style={{
                 opacity: (uploading || !image || !caption.trim()) ? 0.6 : 1,
-                cursor: (uploading || !image || !caption.trim()) ? 'not-allowed' : 'pointer'
+                cursor: (uploading || !image || !caption.trim()) ? 'not-allowed' : 'pointer',
+                pointerEvents: uploading ? 'none' : 'auto' // Completely disable clicking when uploading
               }}
             >
               {uploading ? "Processing..." : "Share"}
