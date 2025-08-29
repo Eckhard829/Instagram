@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, updateDoc, arrayUnion, arrayRemove, addDoc, collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove, addDoc, collection, onSnapshot, query, orderBy, deleteDoc, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const PostComponent = ({ post, user }) => {
@@ -9,6 +9,9 @@ const PostComponent = ({ post, user }) => {
   const [newComment, setNewComment] = useState('');
   const [showAllComments, setShowAllComments] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
 
   // Listen for real-time comments updates
   React.useEffect(() => {
@@ -35,6 +38,9 @@ const PostComponent = ({ post, user }) => {
     setIsLiked(post.likes?.includes(user?.uid) || false);
     setLikesCount(post.likes?.length || 0);
   }, [post.likes, user?.uid]);
+
+  // Check if current user can delete this post
+  const canDeletePost = user && post.userId === user.uid;
 
   const handleLike = async () => {
     if (!user) {
@@ -87,6 +93,67 @@ const PostComponent = ({ post, user }) => {
       }
     } finally {
       setLikeLoading(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!canDeletePost) {
+      alert('You can only delete your own posts');
+      return;
+    }
+
+    if (deleteLoading) return;
+    setDeleteLoading(true);
+
+    try {
+      const batch = writeBatch(db);
+
+      // Delete main post document
+      const postRef = doc(db, 'posts', post.id);
+      batch.delete(postRef);
+
+      // Delete all comments
+      const commentsRef = collection(db, 'posts', post.id, 'comments');
+      const commentsSnapshot = await getDocs(commentsRef);
+      commentsSnapshot.docs.forEach((commentDoc) => {
+        batch.delete(commentDoc.ref);
+      });
+
+      // Delete all image chunks if they exist
+      if (post.imageChunks && post.imageChunks > 0) {
+        const chunksRef = collection(db, 'posts', post.id, 'imageChunks');
+        const chunksSnapshot = await getDocs(chunksRef);
+        chunksSnapshot.docs.forEach((chunkDoc) => {
+          batch.delete(chunkDoc.ref);
+        });
+      }
+
+      // Commit the batch deletion
+      await batch.commit();
+      console.log('Post and all related data deleted successfully');
+      
+      // Show success message
+      alert('Post deleted successfully!');
+      
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      
+      let errorMessage = 'Failed to delete post. ';
+      if (error.code === 'permission-denied') {
+        errorMessage += 'You do not have permission to delete this post.';
+      } else if (error.code === 'not-found') {
+        errorMessage += 'Post not found or already deleted.';
+      } else if (error.code === 'unauthenticated') {
+        errorMessage += 'Please log in again.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteConfirm(false);
+      setShowOptionsMenu(false);
     }
   };
 
@@ -152,6 +219,59 @@ const PostComponent = ({ post, user }) => {
         ></div>
         <span className="post-username">{post.username || 'Anonymous'}</span>
         <span className="post-time">{formatTimeAgo(post.createdAt)}</span>
+        
+        {/* Options menu - only show for post owner */}
+        {canDeletePost && (
+          <div style={{ marginLeft: 'auto', position: 'relative' }}>
+            <span 
+              className="material-symbols-outlined" 
+              onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+              style={{ 
+                color: '#fff', 
+                cursor: 'pointer',
+                fontSize: '20px',
+                padding: '4px'
+              }}
+            >
+              more_horiz
+            </span>
+            
+            {showOptionsMenu && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: '0',
+                background: '#262626',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                zIndex: 1000,
+                minWidth: '120px'
+              }}>
+                <button
+                  onClick={() => {
+                    setShowOptionsMenu(false);
+                    setShowDeleteConfirm(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#ff4757',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontSize: '14px',
+                    borderRadius: '8px'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#333'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                >
+                  Delete Post
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Post Image */}
@@ -280,6 +400,87 @@ const PostComponent = ({ post, user }) => {
           )}
         </form>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.75)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            backgroundColor: '#262626',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '90%',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ color: '#fff', marginBottom: '16px', fontSize: '18px' }}>
+              Delete Post?
+            </h3>
+            <p style={{ color: '#999', marginBottom: '24px', fontSize: '14px' }}>
+              Are you sure you want to delete this post? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleteLoading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#363636',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  opacity: deleteLoading ? 0.6 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeletePost}
+                disabled={deleteLoading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#ff4757',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  opacity: deleteLoading ? 0.6 : 1
+                }}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Click outside to close options menu */}
+      {showOptionsMenu && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 999
+          }}
+          onClick={() => setShowOptionsMenu(false)}
+        />
+      )}
     </div>
   );
 };
