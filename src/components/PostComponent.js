@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, updateDoc, arrayUnion, arrayRemove, addDoc, collection, onSnapshot, query, orderBy, deleteDoc, writeBatch, getDocs } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove, addDoc, collection, onSnapshot, query, orderBy, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const PostComponent = ({ post, user }) => {
